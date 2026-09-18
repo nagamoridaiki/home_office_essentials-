@@ -1,0 +1,16 @@
+// Claude Code の Preview（プレビュー）機能用の設定ファイル
+// アプリをブラウザでプレビューするとき、開発サーバーの起動方法を Claude に伝えるために使う
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "dev",
+      "runtimeExecutable": "pnpm",
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
+      "port": 3000
+    }
+  ]
+}
