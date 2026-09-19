@@ -1,0 +1,8 @@
+{
+  // ファイルを保存したときに、自動でコードの見た目（インデントなど）を整える
+  "editor.formatOnSave": true,
+  // ファイルの一番最後に改行を必ず入れる（多くのツールが期待する形式）
+  "files.insertFinalNewline": true,
+  // 末尾の空行を保存時に勝手に削らない（末尾に1行空けても残る）
+  "files.trimFinalNewlines": false
+}
