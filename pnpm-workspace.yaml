@@ -1,2 +1,7 @@
 packages:
   - 'apps/*'
+
+# インストール時のビルドスクリプト実行の許可リスト（apps/web から移動）
+allowBuilds:
+  sharp: false
+  unrs-resolver: false

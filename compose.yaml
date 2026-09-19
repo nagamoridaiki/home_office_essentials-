@@ -1,0 +1,36 @@
+# 開発用の Compose ファイル（docker compose up で web / api / db を起動する）
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?.env に POSTGRES_USER を設定してください}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?.env に POSTGRES_PASSWORD を設定してください}
+      POSTGRES_DB: ${POSTGRES_DB:?.env に POSTGRES_DB を設定してください}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql
+    healthcheck:
+      # 初期化中の一時サーバーに反応しないよう、-h で TCP 経由で確認する
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+      start_interval: 2s
+
+  api:
+    build: ./backend
+    ports:
+      - "127.0.0.1:8080:8080"
+
+  web:
+    build:
+      # pnpm ワークスペースはルートの lockfile などが必要なため、コンテキストはルート
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - "127.0.0.1:3000:3000"
+
+volumes:
+  db-data:
