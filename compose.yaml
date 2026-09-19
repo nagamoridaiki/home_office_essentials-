@@ -44,6 +44,12 @@ services:
       dockerfile: apps/web/Dockerfile
     ports:
       - "127.0.0.1:3000:3000"
+    volumes:
+      # ソースだけをマウントする。apps/web ごとだと、ホストの node_modules（macOS 用）と
+      # .next がコンテナのものを隠してしまうため。
+      # 設定ファイルや package.json を変えたときは docker compose up -d --build web で反映する
+      - ./apps/web/src:/app/apps/web/src
+      - ./apps/web/public:/app/apps/web/public
 
 volumes:
   db-data:
