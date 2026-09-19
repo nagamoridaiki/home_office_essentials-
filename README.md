@@ -16,3 +16,14 @@ pnpm dev
 
 - Frontend: http://localhost:3000
 - Backend: http://localhost:8080
+
+
+
+```bash
+
+# フロントのみ
+pnpm --filter web dev
+
+# バックのみ
+cd backend && go run .
+```
