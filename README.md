@@ -19,6 +19,12 @@
 cp .env.example .env
 ```
 
+DB にテーブルを作る（`db` が止まっていても自動で起動する）。
+
+```bash
+docker compose run --rm migrate up
+```
+
 ### 起動
 
 ```bash
@@ -68,6 +74,52 @@ docker compose exec db psql -U app -d home_office_essentials -c "select current_
 docker compose exec api bash -c 'echo > /dev/tcp/db/5432 && echo "db:5432 に接続できた"'
 ```
 
+### DB マイグレーション
+
+[golang-migrate](https://github.com/golang-migrate/migrate) をコンテナで実行する（ローカルへのインストールは不要）。SQL は `backend/db/migrations/` に置く。書き方のルールは [.claude/rules/database.md](.claude/rules/database.md)。
+
+未適用のものをすべて適用する。
+
+```bash
+docker compose run --rm migrate up
+```
+
+1 つ前に戻す。
+
+```bash
+docker compose run --rm migrate down 1
+```
+
+> [!CAUTION]
+> 数字を付けない `down` はすべてを戻す（`[y/N]` で確認される）。
+
+いまの version を見る（`2` のように表示される）。
+
+```bash
+docker compose run --rm migrate version
+```
+
+新しいマイグレーションを作る。`backend/db/migrations/` に `00000N_<名前>.up.sql` と `.down.sql` ができるので、中身を書く。
+
+```bash
+docker compose run --rm migrate create -ext sql -dir /migrations -seq <名前>
+```
+
+#### 失敗したとき（dirty）
+
+SQL が失敗すると version に `(dirty)` が付き、`up` / `down` が `Dirty database version N. Fix and force version.` で止まる。各ファイルは `BEGIN;` 〜 `COMMIT;` で囲んでいるため、失敗した N の変更は DB に残っていない。
+
+1. N の SQL を直す
+2. migrate が覚えている「いま何番まで成功したか」のメモを、1 つ前（N − 1）に書き換える。`force` はテーブルなどには一切触れず、このメモ（DB の `schema_migrations` テーブル）だけを書き換える
+
+   ```bash
+   docker compose run --rm migrate force <N − 1>
+   ```
+
+3. もう一度 `up` する
+
+失敗時に続けて出る `pg_advisory_unlock` のエラーは、コンテナの終了とともに解消されるので対応不要。
+
 ### 停止
 
 ```bash
@@ -80,6 +132,7 @@ docker compose down
 
 > [!WARNING]
 > `docker compose down -v` は DB のデータも削除する。データを消したいときだけ使う。
+> 消したあとは `docker compose run --rm migrate up` でテーブルを作り直す。
 
 ## Docker を使わない場合
 
