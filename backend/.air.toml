@@ -1,0 +1,17 @@
+# air の設定。書いていない項目は既定値（air init で確認できる）
+root = "."
+tmp_dir = "tmp"
+
+[build]
+  cmd = "go build -o ./tmp/main ."
+  entrypoint = ["./tmp/main"]
+  include_ext = ["go"]
+  # tmp はビルド結果の置き場。監視すると再ビルドが止まらなくなる
+  exclude_dir = ["tmp"]
+  exclude_regex = ["_test\\.go"]
+  stop_on_error = true
+  # macOS からのマウントで変更を検知できなければ true にする
+  poll = false
+
+[misc]
+  clean_on_exit = true
