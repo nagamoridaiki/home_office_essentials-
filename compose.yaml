@@ -27,6 +27,15 @@ services:
       db:
         condition: service_healthy
         restart: true
+    volumes:
+      - ./backend:/app
+    tmpfs:
+      # air はビルドした実行ファイルを /app/tmp/main に置く。
+      # /app はホストの backend/ につながっているため、そのままだと backend/tmp/ に約 9MB のファイルができる。
+      # そこで /app/tmp だけをメモリ上の一時領域（tmpfs）に置き換え、ホストに出さないようにする。
+      # 中身はコンテナを止めると消えるが、air が毎回ビルドし直すので困らない。
+      # tmpfs は既定で「置いたファイルを実行できない」設定のため、:exec で実行を許可する。
+      - /app/tmp:exec
 
   web:
     build:
