@@ -1,0 +1,55 @@
+# 開発用の Compose ファイル（docker compose up で web / api / db を起動する）
+services:
+  db:
+    image: postgres:18
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:?.env に POSTGRES_USER を設定してください}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?.env に POSTGRES_PASSWORD を設定してください}
+      POSTGRES_DB: ${POSTGRES_DB:?.env に POSTGRES_DB を設定してください}
+    ports:
+      - "127.0.0.1:5432:5432"
+    volumes:
+      - db-data:/var/lib/postgresql
+    healthcheck:
+      # 初期化中の一時サーバーに反応しないよう、-h で TCP 経由で確認する
+      test: ["CMD", "pg_isready", "-h", "127.0.0.1", "-U", "${POSTGRES_USER}", "-d", "${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+      start_interval: 2s
+
+  api:
+    build: ./backend
+    ports:
+      - "127.0.0.1:8080:8080"
+    depends_on:
+      db:
+        condition: service_healthy
+        restart: true
+    volumes:
+      - ./backend:/app
+    tmpfs:
+      # air はビルドした実行ファイルを /app/tmp/main に置く。
+      # /app はホストの backend/ につながっているため、そのままだと backend/tmp/ に約 9MB のファイルができる。
+      # そこで /app/tmp だけをメモリ上の一時領域（tmpfs）に置き換え、ホストに出さないようにする。
+      # 中身はコンテナを止めると消えるが、air が毎回ビルドし直すので困らない。
+      # tmpfs は既定で「置いたファイルを実行できない」設定のため、:exec で実行を許可する。
+      - /app/tmp:exec
+
+  web:
+    build:
+      # pnpm ワークスペースはルートの lockfile などが必要なため、コンテキストはルート
+      context: .
+      dockerfile: apps/web/Dockerfile
+    ports:
+      - "127.0.0.1:3000:3000"
+    volumes:
+      # ソースだけをマウントする。apps/web ごとだと、ホストの node_modules（macOS 用）と
+      # .next がコンテナのものを隠してしまうため。
+      # 設定ファイルや package.json を変えたときは docker compose up -d --build web で反映する
+      - ./apps/web/src:/app/apps/web/src
+      - ./apps/web/public:/app/apps/web/public
+
+volumes:
+  db-data:

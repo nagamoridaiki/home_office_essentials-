@@ -8,21 +8,6 @@
 - Backend: Go 1.27（`backend`）— 詳細は `.claude/rules/backend.md`
 - パッケージマネージャ: pnpm 11（ワークスペース）
 
-## コマンド
-
-```bash
-# フロント + バックを同時起動
-pnpm dev
-# Frontend: http://localhost:3000
-# Backend:  http://localhost:8080
-
-# フロントのみ
-pnpm --filter web dev
-
-# バックのみ
-cd backend && go run .
-```
-
 ## アーキテクチャ方針（必須）
 
 クリーンアーキテクチャと DDD を前提にする。特定の画面・エンティティ・API 形にルールを固定しない。
