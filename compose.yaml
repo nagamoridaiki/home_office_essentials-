@@ -19,6 +19,22 @@ services:
       start_period: 30s
       start_interval: 2s
 
+  migrate:
+    image: migrate/migrate:v4.20.1
+    # docker compose up では起動しない。runでサービス名を指定したときだけ動く。
+    profiles: ["tools"]
+    # runの引数（up / down 1 など）は command を置き換えるが entrypoint は残るため、毎回使う引数は entrypoint に書く
+    entrypoint:
+      - migrate
+      - -path=/migrations
+      - -database=postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?sslmode=disable
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      # create で新しいファイルを書き込むため、読み取り専用にはしない
+      - ./backend/db/migrations:/migrations
+
   api:
     build: ./backend
     ports:
