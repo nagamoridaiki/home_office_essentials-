@@ -1,11 +1,15 @@
 package domain
 
-import "errors"
+import (
+	"context"
+	"errors"
+)
 
 var ErrEmptyTitle = errors.New("title is empty")
 
 type Todo struct {
-	ID        int
+	// DB の id は bigint のため int64 で受ける
+	ID        int64
 	Title     string
 	Completed bool
 }
@@ -19,8 +23,9 @@ func NewTodo(title string) (Todo, error) {
 }
 
 // TodoRepository の実装は外側（repository層）に置く。
+// ctx はリクエストが中断されたときに問い合わせも止めるために渡す。
 type TodoRepository interface {
-	FindAll() ([]Todo, error)
-	Create(todo Todo) (Todo, error)
-	Delete(id int) error
+	FindAll(ctx context.Context) ([]Todo, error)
+	Create(ctx context.Context, todo Todo) (Todo, error)
+	Delete(ctx context.Context, id int64) error
 }

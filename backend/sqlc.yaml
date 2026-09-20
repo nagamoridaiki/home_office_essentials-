@@ -1,0 +1,16 @@
+# SQL から型安全な Go コードを生成する設定。
+# 実行は docker compose run --rm sqlc generate（ローカルに sqlc は入れない）
+version: "2"
+sql:
+  - engine: postgresql
+    # マイグレーションをそのままスキーマとして読む。sqlc は *.down.sql を無視する
+    schema: db/migrations
+    queries: db/queries
+    gen:
+      go:
+        package: db
+        # repository/internal/ に置くと、Go の internal ルールにより
+        # repository 配下からしか import できない。
+        # ドメイン層・ユースケース層が生成コードに触れないことをコンパイラが保証する
+        out: repository/internal/db
+        sql_package: pgx/v5

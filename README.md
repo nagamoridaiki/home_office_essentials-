@@ -68,10 +68,10 @@ DB に設定したユーザー・データベースで接続できるか。
 docker compose exec db psql -U app -d home_office_essentials -c "select current_user, current_database();"
 ```
 
-`api` のコンテナから `db` に届くか（ネットワークの疎通のみ。アプリからの接続は別 Issue で実装する）。
+`api` から DB に接続できているか。`api` は起動時に接続を確かめるので、次のログが出ていれば成功（つながらないときは起動せずエラーを出す）。
 
 ```bash
-docker compose exec api bash -c 'echo > /dev/tcp/db/5432 && echo "db:5432 に接続できた"'
+docker compose logs api | grep "Backend running"
 ```
 
 ### DB マイグレーション
@@ -119,6 +119,19 @@ SQL が失敗すると version に `(dirty)` が付き、`up` / `down` が `Dirt
 3. もう一度 `up` する
 
 失敗時に続けて出る `pg_advisory_unlock` のエラーは、コンテナの終了とともに解消されるので対応不要。
+
+### sqlc
+
+クエリの Go コードは [sqlc](https://sqlc.dev/) で生成する（ローカルインストール不要）。生成物（`backend/repository/internal/db/`）は手で直さない。
+
+| やりたいこと | やること |
+| --- | --- |
+| テーブル・カラムの追加・変更・削除 | 新マイグレーションを書いて `migrate up` → 必要なら `db/queries` も直す → `sqlc generate` |
+| クエリの追加・変更・削除 | `backend/db/queries/` の SQL を直す → `sqlc generate` |
+
+```bash
+docker compose run --rm sqlc generate
+```
 
 ### 停止
 

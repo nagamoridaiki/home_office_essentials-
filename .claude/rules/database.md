@@ -23,3 +23,4 @@ CREATE OR REPLACE TRIGGER <テーブル名>_set_updated_at
 - up / down は `BEGIN;` 〜 `COMMIT;` で囲む
 - `IF NOT EXISTS` / `IF EXISTS` / `OR REPLACE` を使い、何度流しても壊れないようにする
 - 適用済み・コミット済みのファイルは書き換えない。変更は新しい番号のファイルで行う
+- スキーマ変更後は `migrate up` に加えて `docker compose run --rm sqlc generate` も行う（クエリだけの変更なら generate のみ）
