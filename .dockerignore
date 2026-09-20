@@ -12,4 +12,7 @@
 .git
 backend
 .claude
+.specify
+specs
+docs
 .vscode
