@@ -25,7 +25,7 @@ func (c *TodoController) Register(mux *http.ServeMux) {
 }
 
 type todoResponse struct {
-	ID        int    `json:"id"`
+	ID        int64  `json:"id"`
 	Title     string `json:"title"`
 	Completed bool   `json:"completed"`
 }
@@ -35,7 +35,7 @@ func toResponse(t domain.Todo) todoResponse {
 }
 
 func (c *TodoController) list(w http.ResponseWriter, r *http.Request) {
-	todos, err := c.usecase.List()
+	todos, err := c.usecase.List(r.Context())
 	if err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
@@ -56,7 +56,7 @@ func (c *TodoController) create(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, "Invalid input", http.StatusBadRequest)
 		return
 	}
-	todo, err := c.usecase.Create(req.Title)
+	todo, err := c.usecase.Create(r.Context(), req.Title)
 	if errors.Is(err, domain.ErrEmptyTitle) {
 		http.Error(w, "Invalid input", http.StatusBadRequest)
 		return
@@ -69,12 +69,12 @@ func (c *TodoController) create(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c *TodoController) delete(w http.ResponseWriter, r *http.Request) {
-	id, err := strconv.Atoi(r.PathValue("id"))
+	id, err := strconv.ParseInt(r.PathValue("id"), 10, 64)
 	if err != nil {
 		http.Error(w, "Invalid ID", http.StatusBadRequest)
 		return
 	}
-	if err := c.usecase.Delete(id); err != nil {
+	if err := c.usecase.Delete(r.Context(), id); err != nil {
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return
 	}

@@ -22,7 +22,7 @@ func main() {
 	}
 	defer pool.Close()
 
-	todoRepo := repository.NewMemoryTodoRepository()
+	todoRepo := repository.NewPostgresTodoRepository(pool)
 	todoUsecase := usecase.NewTodoUsecase(todoRepo)
 	todoController := controller.NewTodoController(todoUsecase)
 
