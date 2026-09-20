@@ -120,6 +120,19 @@ SQL が失敗すると version に `(dirty)` が付き、`up` / `down` が `Dirt
 
 失敗時に続けて出る `pg_advisory_unlock` のエラーは、コンテナの終了とともに解消されるので対応不要。
 
+### sqlc
+
+クエリの Go コードは [sqlc](https://sqlc.dev/) で生成する（ローカルインストール不要）。生成物（`backend/repository/internal/db/`）は手で直さない。
+
+| やりたいこと | やること |
+| --- | --- |
+| テーブル・カラムの追加・変更・削除 | 新マイグレーションを書いて `migrate up` → 必要なら `db/queries` も直す → `sqlc generate` |
+| クエリの追加・変更・削除 | `backend/db/queries/` の SQL を直す → `sqlc generate` |
+
+```bash
+docker compose run --rm sqlc generate
+```
+
 ### 停止
 
 ```bash
