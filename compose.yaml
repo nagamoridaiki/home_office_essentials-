@@ -37,6 +37,10 @@ services:
 
   api:
     build: ./backend
+    environment:
+      # 認証情報を二重管理しないよう、.env の POSTGRES_* から接続 URL を組み立てる。
+      # コンテナ間の通信なのでホストはサービス名 db、ポートは公開前の 5432。
+      DATABASE_URL: postgres://${POSTGRES_USER}:${POSTGRES_PASSWORD}@db:5432/${POSTGRES_DB}?sslmode=disable
     ports:
       - "127.0.0.1:8080:8080"
     depends_on:
