@@ -167,3 +167,7 @@ pnpm --filter web dev
 # バックのみ
 cd backend && go run .
 ```
+
+## 関連ドキュメント
+
+- [Spec Kit の使い方](docs/spec-kit.md) — 仕様駆動開発の流れと、各コマンドが何を生成するか
