@@ -68,10 +68,10 @@ DB に設定したユーザー・データベースで接続できるか。
 docker compose exec db psql -U app -d home_office_essentials -c "select current_user, current_database();"
 ```
 
-`api` のコンテナから `db` に届くか（ネットワークの疎通のみ。アプリからの接続は別 Issue で実装する）。
+`api` から DB に接続できているか。`api` は起動時に接続を確かめるので、次のログが出ていれば成功（つながらないときは起動せずエラーを出す）。
 
 ```bash
-docker compose exec api bash -c 'echo > /dev/tcp/db/5432 && echo "db:5432 に接続できた"'
+docker compose logs api | grep "Backend running"
 ```
 
 ### DB マイグレーション
