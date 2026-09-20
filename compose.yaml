@@ -35,6 +35,15 @@ services:
       # create で新しいファイルを書き込むため、読み取り専用にはしない
       - ./backend/db/migrations:/migrations
 
+  sqlc:
+    image: sqlc/sqlc:1.31.1
+    # migrate と同じく、docker compose up では起動しない
+    profiles: ["tools"]
+    working_dir: /src
+    volumes:
+      # 生成コードを書き出すため、読み取り専用にはしない
+      - ./backend:/src
+
   api:
     build: ./backend
     environment:
