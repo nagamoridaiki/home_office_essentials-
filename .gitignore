@@ -5,3 +5,6 @@ node_modules
 .env.development.local
 .env.test.local
 .env.production.local
+
+# 仕様書の HTML プレビュー（spec.md から生成できるため共有しない）
+specs/**/*.html
