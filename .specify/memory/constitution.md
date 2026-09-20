@@ -1,50 +1,106 @@
-# [PROJECT_NAME] Constitution
-<!-- Example: Spec Constitution, TaskFlow Constitution, etc. -->
+# Home Office Essentials Constitution
 
 ## Core Principles
 
-### [PRINCIPLE_1_NAME]
-<!-- Example: I. Library-First -->
-[PRINCIPLE_1_DESCRIPTION]
-<!-- Example: Every feature starts as a standalone library; Libraries must be self-contained, independently testable, documented; Clear purpose required - no organizational-only libraries -->
+### I. 依存方向とドメインの独立
 
-### [PRINCIPLE_2_NAME]
-<!-- Example: II. CLI Interface -->
-[PRINCIPLE_2_DESCRIPTION]
-<!-- Example: Every library exposes functionality via CLI; Text in/out protocol: stdin/args → stdout, errors → stderr; Support JSON + human-readable formats -->
+クリーンアーキテクチャと DDD を前提とする。
 
-### [PRINCIPLE_3_NAME]
-<!-- Example: III. Test-First (NON-NEGOTIABLE) -->
-[PRINCIPLE_3_DESCRIPTION]
-<!-- Example: TDD mandatory: Tests written → User approved → Tests fail → Then implement; Red-Green-Refactor cycle strictly enforced -->
+- 依存は **外側から内側への一方向のみ**とする。逆向きの依存と循環依存を作ってはならない。
+- ドメイン層は UI・配送手段・永続化・フレームワークを知ってはならない。
+- リポジトリのインターフェースはドメインまたはアプリケーション側に置き、その実装はインフラ側に置かなければならない。
+- ビジネスルールはドメイン層に置く。HTTP ハンドラに散らしてはならない。
+- 新機能の設計では「いまの構成の踏襲」よりも「依存方向と境界が保たれるか」を優先する。
+- 試作が本方針に合わないときは、無理に温存せず境界に沿って切り直してよい。
 
-### [PRINCIPLE_4_NAME]
-<!-- Example: IV. Integration Testing -->
-[PRINCIPLE_4_DESCRIPTION]
-<!-- Example: Focus areas requiring integration tests: New library contract tests, Contract changes, Inter-service communication, Shared schemas -->
+層ごとの詳細な責務分担（ドメイン／アプリケーション／インフラ／インターフェースに何を置き、何を置かないか）は
+`.claude/rules/backend.md` を正とする。
 
-### [PRINCIPLE_5_NAME]
-<!-- Example: V. Observability, VI. Versioning & Breaking Changes, VII. Simplicity -->
-[PRINCIPLE_5_DESCRIPTION]
-<!-- Example: Text I/O ensures debuggability; Structured logging required; Or: MAJOR.MINOR.BUILD format; Or: Start simple, YAGNI principles -->
+**根拠**: 依存方向が壊れると、ドメインの変更に永続化や HTTP の都合が混入し、テストと差し替えが困難になる。
+この一点さえ守られていれば、個別の構成は後から変更できる。
 
-## [SECTION_2_NAME]
-<!-- Example: Additional Constraints, Security Requirements, Performance Standards, etc. -->
+### II. ユビキタス言語と境界づけられたコンテキスト
 
-[SECTION_2_CONTENT]
-<!-- Example: Technology stack requirements, compliance standards, deployment policies, etc. -->
+- 用語はユビキタス言語に揃える。コード名・API・UI 文言を勝手に別名にしてはならない。
+- 境界づけられたコンテキストを意識し、またぐときは明示的な連携を検討する。
+- エンドポイントや契約を変更するときは、フロントエンドの API クライアントと型をセットで整合させなければならない。
 
-## [SECTION_3_NAME]
-<!-- Example: Development Workflow, Review Process, Quality Gates, etc. -->
+**根拠**: 同じ概念が層ごとに違う名前で呼ばれると、仕様・計画・実装の照合が成立しなくなる。
+名前の一致は、後続の plan と analyze が機能するための前提である。
 
-[SECTION_3_CONTENT]
-<!-- Example: Code review requirements, testing gates, deployment approval process, etc. -->
+### III. 生成物と手書きコードの分離
+
+- sqlc が生成したコード（`backend/repository/internal/db/`）を手で編集してはならない。
+  スキーマやクエリを変えるときは SQL を直して再生成する。
+- 適用済みかつコミット済みのマイグレーションファイルを書き換えてはならない。
+  変更は新しい連番のファイルで行う。
+
+マイグレーションの書き方の細則（必須の列、トリガー、トランザクション、冪等性）は
+`.claude/rules/database.md` を正とする。
+
+**根拠**: 生成物を手で直すと次回の生成で失われる。適用済みマイグレーションを書き換えると、
+すでに適用した環境と新規環境でスキーマが食い違う。どちらも後から検知しにくい。
+
+### IV. 再現可能な開発環境
+
+- パッケージマネージャは **pnpm** に固定する。npm と yarn を使ってはならない。
+- golang-migrate と sqlc はコンテナ経由で実行し、ローカルへのインストールを前提にしてはならない。
+- 開発環境は Docker Compose（`web` / `api` / `db`）で再現できる状態を保つ。
+- 外部ライブラリを追加する前に、標準ライブラリと既存の境界で足りるかを確認する。
+
+**根拠**: 手元でしか動かない手順は、他の人と将来の自分にとって再現できない。
+ツールをコンテナに閉じ込めることで、必要な前提を Docker だけに保てる。
+
+### V. 秘密情報の取り扱い
+
+- シークレットおよび `.env` 系のファイルをコミットしてはならない。設定の共有は `.env.example` を通じて行う。
+
+**根拠**: 一度コミットされた秘密情報は履歴から容易には消せない。
+共有が必要な項目はキーだけを `.env.example` に置き、値は各自の環境に閉じる。
+
+## 技術スタックと制約
+
+このリポジトリはフロントエンドとバックエンドを分離したモノレポである。
+
+| 領域 | 採用技術 | 置き場所 |
+| --- | --- | --- |
+| フロントエンド | Next.js 16 / React 19 / TypeScript / Tailwind CSS 4 | `apps/web` |
+| バックエンド | Go 1.27（HTTP は原則、標準ライブラリ `net/http`） | `backend` |
+| データベース | PostgreSQL 18（golang-migrate / sqlc） | `backend/db` |
+| パッケージマネージャ | pnpm 11（ワークスペース） | リポジトリ直下 |
+
+この表は現時点の実態を記録したものである。技術の入れ替えは禁止されていないが、
+本 constitution の改定手続きを経て更新すること。
+
+## 開発ワークフローとルールの出典
+
+- 起動と DB 操作の手順は `README.md` を正とする。
+- バックエンドの層分け・HTTP・Go の慣例は `.claude/rules/backend.md` を正とする。
+- マイグレーションの書き方は `.claude/rules/database.md` を正とする。
+- スキーマを変更したときは、マイグレーションの適用に加えて sqlc の再生成まで行う。
+
+本 constitution はこれらを**複製しない**。判断基準のみを本書に置き、手順は上記の出典を参照する。
 
 ## Governance
-<!-- Example: Constitution supersedes all other practices; Amendments require documentation, approval, migration plan -->
 
-[GOVERNANCE_RULES]
-<!-- Example: All PRs/reviews must verify compliance; Complexity must be justified; Use [GUIDANCE_FILE] for runtime development guidance -->
+- 本 constitution は**判断基準**を定める。手順レベルのコーディング規約は `.claude/rules/` を出典とする。
+- 本書と `.claude/rules/` が矛盾した場合は、本書を優先する。矛盾を見つけた者は速やかに
+  `.claude/rules/` 側を修正しなければならない。
+- `CLAUDE.md` は本書の**原典**である。本書は `CLAUDE.md` の方針を SDD 向けに再表現したものであり、
+  両者が矛盾した場合は `CLAUDE.md` を優先する。
+- 本書と `CLAUDE.md` に同じ内容があるのは冗長ではなく意図的である。`CLAUDE.md` は日常の
+  コーディング全般で参照され、本書は `/speckit-plan` と `/speckit-analyze` から参照される。
+  読み手が異なるため、双方に置く。
+- 原則または技術スタックを変更するときは、本書と `CLAUDE.md` を**同じコミットで**更新しなければならない。
+  片方だけの更新は、次の plan と analyze が古い前提で動く原因になる。
+- 改定はセマンティックバージョニングに従う。
+  - MAJOR: 原則の削除、または後方互換性のない再定義
+  - MINOR: 原則やセクションの追加、指針の実質的な拡張
+  - PATCH: 表現の明確化、誤記修正、意味を変えない調整
+- 改定の際は変更理由を記録すること。
+- 原則に反する実装が必要になった場合、例外を設けるのではなく、
+  境界に沿って設計を切り直すことを先に検討する。
+- 本書に書くのは「このリポジトリですでに真であること」に限る。
+  守れないルールを書くと、後続の plan と analyze がノイズを生む。
 
-**Version**: [CONSTITUTION_VERSION] | **Ratified**: [RATIFICATION_DATE] | **Last Amended**: [LAST_AMENDED_DATE]
-<!-- Example: Version: 2.1.1 | Ratified: 2025-06-13 | Last Amended: 2025-07-16 -->
+**Version**: 1.0.0 | **Ratified**: 2026-09-20 | **Last Amended**: 2026-09-20
