@@ -19,6 +19,8 @@
 | スプレッドシート | [禁止別名早見表](https://docs.google.com/spreadsheets/d/1xyfewtu6fItpi6hckMzUs3Ln2MMLRPULlCVoIFVZXZI/edit) | 4 章 |
 | スプレッドシート | [命名規約](https://docs.google.com/spreadsheets/d/19MyX_2ivT1ScLsyQpNS7ijwJTIfYMyE3FSFh4CmKv2I/edit) | 2 章 |
 
+> 注: 2026-10-09 の論理データモデル策定にあたり「在庫ソフトロック」と「カート」の実装方法を変えた。Drive のスナップショットはこの 2 行が古い。詳細は [論理データモデル](03-logical-data-model.md)。
+
 ## 1. 前提と未決事項
 
 ### 1.1 MVP のスコープ
@@ -90,7 +92,7 @@
 | --- | --- | --- | --- | --- | --- |
 | 在庫 | `Inventory` / `inventories` | `/api/admin/inventories`, `inventory_id` | 在庫 | 実在する個体 1 点。1 点ものなので数量を持たず、1 行がちょうど 1 個体を表す。買取由来か新品仕入れかを問わない | 在庫数、ストック、商品、買取商品、`purchased_product` |
 | 在庫ステータス | `InventoryStatus` | `inventory_status` | ステータス | 個体が今どの工程にいるか。許可された遷移だけを通す（状態遷移表を参照）。二重販売を防ぐ要の値 | 在庫状態、ステート、`status`（単独） |
-| 在庫ソフトロック | `InventoryLock` / `inventory_locks` | `POST /api/checkout-sessions` で発行 | 在庫を確保しています | 「購入手続きに進む」を押した時点で、特定の在庫 1 点を 15 分間だけ予約する記録。Postgres だけで完結させ、Redis は使わない。期限切れの行は削除せず失効として残す | 仮押さえ（UI 文言としてのみ可）、カート確保、予約、`is_rock`、`is_temporary` |
+| 在庫ソフトロック | `InventoryLock`（`inventories.lock_checkout_session_id` と `inventories.lock_expires_at`） | `POST /api/checkout-sessions` で発行 | 在庫を確保しています | 「購入手続きに進む」を押した時点で、特定の在庫 1 点を 15 分間だけ予約すること。Postgres だけで完結させ、Redis は使わない。専用テーブルは作らず在庫の 2 列で表す（在庫 1 行に 1 組しかないので、二重の取り置きが表現できない）。失効・解放は `inventory_movements` に記録する | 仮押さえ（UI 文言としてのみ可）、カート確保、予約、`is_rock`、`is_temporary`、`inventory_locks` |
 | ロック期限 | `ExpiresAt` | `expires_at` | 残り mm:ss | ソフトロックが失効する時刻。発行時刻の 15 分後。これを過ぎたロックは在庫の確保とみなさない | タイムアウト、有効期限、`limit_at` |
 | 入庫 | `Receiving` | `inventory_movements.type = "receiving"` | 入庫 | 個体を在庫として登録すること。買取の検品完了と、新品の仕入れの 2 経路がある | 仕入、登録、`stock_in` |
 | 出品 | `Listing` / `ListInventory` | `POST /api/admin/inventories/{id}/listing` | 出品する | 在庫を販売枠に結びつけて、顧客が買える状態にすること | 公開、掲載開始、アップ |
@@ -103,7 +105,7 @@
 
 | 日本語の用語 | コード上の名前 | API 上の名前 | UI 文言 | 定義 | 使ってはいけない別名 |
 | --- | --- | --- | --- | --- | --- |
-| カート | `Cart` | `/api/cart` | カート | 顧客が検討中の販売枠を入れておく入れ物。**在庫は確保しない**。カートに入れただけでは誰の在庫でもない | 買い物かご（コード・API では不可）、確保、キープ |
+| カート | `Cart`（ブラウザ側のみ） | サーバに持たない | カート | 顧客が検討中の販売枠を入れておく入れ物。**在庫は確保しない**。ブラウザの `localStorage` に**販売枠 ID** を置くだけで、在庫 ID は持たない（どの個体を確保するかはサーバが決める） | 買い物かご（コード・API では不可）、確保、キープ、`/api/cart`、`carts` |
 | チェックアウトセッション | `CheckoutSession` / `checkout_sessions` | `POST /api/checkout-sessions`, `checkout_session_id` | 購入手続き | 「購入手続きに進む」から注文確定までの 1 回の手続き。在庫ソフトロックと決済インテントをこれが束ねる | チェックアウト（単独）、購入セッション、オーダードラフト |
 | 販売注文 | `SellingOrder` / `selling_orders` | `/api/selling-orders`, `selling_order_id` | 注文 | 顧客が商品を買った取引 1 件。Stripe の Webhook を受けて初めて作られる | 購入注文、オーダー、受注、`order`（単独） |
 | 注文明細 | `SellingOrderItem` / `selling_order_items` | `selling_order_items` | 注文内容 | 販売注文に含まれる個体 1 点ぶんの記録。どの在庫がいくらで売れたかを確定させる | `selling_order_inventories`、注文商品、カート明細 |
@@ -183,5 +185,7 @@
 | `collect_*` | 集荷 `pickup_*` | — |
 | `delivery_company_code` | 配送業者 `carrier_code` | — |
 | `product_images_1` 〜 `_10` | 商品画像 `selling_product_images` | 枚数可変の別テーブルに正規化した |
+| `inventory_locks`（テーブル） | 在庫ソフトロック `inventories.lock_*` | ロック専用テーブルは作らない。在庫 1 行に 1 組の列で持つ |
+| `/api/cart` / `carts`（テーブル） | カート（ブラウザ保持） | カートはサーバに持たない |
 | `selling_order_inventories` | 注文明細 `selling_order_items` | — |
 | `product_all_price` | 合計 `total_amount` | 内訳（小計・配送料・消費税）も別カラムで保存する |

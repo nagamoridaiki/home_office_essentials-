@@ -167,8 +167,8 @@ stateDiagram-v2
 | （新規） | `preparing` | 買取注文が `agreed` になった | 許可 | システム | 買取注文 1 件につき在庫 1 行を作る。`cost_price` に最終査定額を入れる | 所有権が移った時点で在庫にする |
 | （新規） | `preparing` | 新品の仕入れを登録した | 許可 | 管理者 | `cost_price` に仕入価格を入れる | — |
 | `preparing` | `available` | 「出品する」操作（販売枠に紐づける） | 許可 | 管理者 | 販売枠が `published` であること | — |
-| `available` | `locked` | 「購入手続きに進む」押下（チェックアウトセッション作成） | 許可 | 顧客 | 該当行を `SELECT ... FOR UPDATE` で掴み、`inventory_locks` に `expires_at = now() + 15分` で発行 | 先に掴んだ 1 人だけが成功。2 人目には 409 を返す |
-| `locked` | `available` | ロック期限切れ | 許可 | システム | `expires_at < now()` で失効。ロック行は削除せず失効として残す | 画面はタイムアウトモーダルを出す |
+| `available` | `locked` | 「購入手続きに進む」押下（チェックアウトセッション作成） | 許可 | 顧客 | `SELECT ... FOR UPDATE SKIP LOCKED` で空いた個体を 1 行掴み、`lock_checkout_session_id` と `lock_expires_at`（15 分後）を埋める | 先に掴んだ 1 人だけが成功。2 人目には 409 を返す |
+| `locked` | `available` | ロック期限切れ | 許可 | システム | `lock_expires_at <= now()` なら失効。lock の 2 列を NULL に戻し、`inventory_movements` に `lock_expired` を残す | 画面はタイムアウトモーダルを出す |
 | `locked` | `available` | 決済失敗 / 購入手続きの中断 | 許可 | 顧客・システム | ロックを明示的に失効させる | 期限切れを待たずに他の顧客が買えるようにする |
 | `locked` | `sold` | Stripe Webhook `payment_intent.succeeded` を受信 | 許可 | システム | 同一トランザクション内で 販売注文の作成 → 在庫を `sold` → ロック解放 をまとめて行う | 注文確定はここが正 |
 | `available` | `suspended` | 出品を停止した | 許可 | 管理者 | 販売枠からは外すが在庫行は残す | — |
