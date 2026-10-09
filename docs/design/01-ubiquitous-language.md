@@ -8,19 +8,6 @@
 - **正はこのリポジトリ（`docs/design/`）**。Google ドライブに置くものは人が読み返すためのスナップショットで、内容が食い違ったらリポジトリが正しい。
 - 参考にした既存資料（Drive の要件定義・データ設計・API 一覧・画面設計）とは、意図的に名前を変えた箇所がある。理由は「使ってはいけない別名」欄に書いた。
 
-### Drive 上のスナップショット
-
-同じ内容を、人が読み返しやすいように Drive にも置いてある。内容が食い違ったらこのファイルが正しい。
-
-| 形式 | ファイル | 収録範囲 |
-| --- | --- | --- |
-| ドキュメント | [EC MVP 用語集（ユビキタス言語）](https://docs.google.com/document/d/1JWIWJdXH8gHRjitccGPKUaqkho3WXb4L8gmxuhPPihw/edit) | このファイル全体 |
-| スプレッドシート | [用語一覧](https://docs.google.com/spreadsheets/d/1TPLw6nDgE3HnThh0pZfE2vskSmZG0T33gnwbKLBt6KA/edit) | 3 章（区分・MVP 列を追加して 1 枚に統合） |
-| スプレッドシート | [禁止別名早見表](https://docs.google.com/spreadsheets/d/1xyfewtu6fItpi6hckMzUs3Ln2MMLRPULlCVoIFVZXZI/edit) | 4 章 |
-| スプレッドシート | [命名規約](https://docs.google.com/spreadsheets/d/19MyX_2ivT1ScLsyQpNS7ijwJTIfYMyE3FSFh4CmKv2I/edit) | 2 章 |
-
-> 注: 2026-10-09 の論理データモデル策定にあたり「在庫ソフトロック」と「カート」の実装方法を変えた。Drive のスナップショットはこの 2 行が古い。詳細は [論理データモデル](03-logical-data-model.md)。
-
 ## 1. 前提と未決事項
 
 ### 1.1 MVP のスコープ

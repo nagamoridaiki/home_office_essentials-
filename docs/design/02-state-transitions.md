@@ -8,16 +8,6 @@
 - 用語は [用語集](01-ubiquitous-language.md) に従う。
 - ここに **許可** と書かれていない遷移は、すべて実装してはいけない。よく間違える遷移だけは **禁止** 行として明示した。
 
-### Drive 上のスナップショット
-
-| ファイル | 収録範囲 |
-| --- | --- |
-| [ステータス一覧](https://docs.google.com/spreadsheets/d/1ndEi1yjsPFbrnZNeXn4E16AWB_nlG6ciwmaxS10T5s4/edit) | 2 章 |
-| [状態遷移図 在庫（SVG）](https://drive.google.com/file/d/1JbvqAtrr2D9HEcjyEiXrpSrlFHwUh61f/view) | 3.1 |
-| [状態遷移図 販売注文（SVG）](https://drive.google.com/file/d/1XFlvnIEdfABnYkC9fFQ0sH4r0yU1Umq9/view) | 3.2 |
-| [状態遷移図 買取注文（SVG）](https://drive.google.com/file/d/1wzdI7sQ-yjf9PrxoafaE2n8ypfEXmJc-/view) | 3.3 |
-| [遷移表](https://docs.google.com/spreadsheets/d/1sWqiTujyj-w1A4gqC_ZHI9V5j3FQa1FfyvQytS_iUF0/edit) | 4 章 |
-
 ## 1. 前提
 
 | 論点 | 決めたこと | 理由 |

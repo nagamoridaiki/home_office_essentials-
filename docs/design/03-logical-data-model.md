@@ -8,20 +8,6 @@
 - 用語は [用語集](01-ubiquitous-language.md)、ステータスの値と遷移は [状態遷移表](02-state-transitions.md) を正とする。
 - 既存資料（Drive のデータ設計）とは型も列名も変えてある。理由は用語集の「使ってはいけない別名」に書いた。
 
-### Drive 上のスナップショット
-
-| ファイル | 収録範囲 |
-| --- | --- |
-| [テーブル一覧](https://docs.google.com/spreadsheets/d/1hzKfI6PVW1QRMZXSYtnKW1wJbrM_g5FpsYhOr1G1MVM/edit) | 2 章 |
-| [カラム定義](https://docs.google.com/spreadsheets/d/1EGvAzP1arsiJSZJ-7kWZ_pk8OxYEmJh0Dnlp5hkvmIM/edit) | 4 章 |
-| [共通方針](https://docs.google.com/spreadsheets/d/1myssfQ00kKkz7nCMbpqN07SlR02rxaRAr8euS3KS7ro/edit) | 1 章 |
-| [テーブル制約](https://docs.google.com/spreadsheets/d/1nmXMed0VX6m9h0YlqdVWexkJNB1PF2XrmSp5o9ILVYk/edit) | 5 章 |
-| [不変条件の担保](https://docs.google.com/spreadsheets/d/1eaHWncsqFVUlGNNmCAoQ5PmWXzZEQhLrBPFtFXBn7qY/edit) | 6 章 |
-| [ER 図 認証・アクター（SVG）](https://drive.google.com/file/d/12K63cra-FuChSPJMvsNwhcbDuXsAV0SW/view) | 3.1 |
-| [ER 図 カタログと在庫（SVG）](https://drive.google.com/file/d/1lub9lhEQ2-QiqRU_XPD93X8YYGdh0glh/view) | 3.2 |
-| [ER 図 販売（SVG）](https://drive.google.com/file/d/1OYnLMPYZu4fWHoyi0y25FAup_H_S2pOq/view) | 3.3 |
-| [ER 図 買取（SVG）](https://drive.google.com/file/d/1NRUVykHD9erT8PO3u138_YNqG10YhEzO/view) | 3.4 |
-
 ## 1. 全テーブル共通の方針
 
 以下はすべてのテーブルに当てはまるので、4 章の各行からは省略した。
@@ -347,6 +333,8 @@ erDiagram
 | `customer_addresses` | `UNIQUE (customer_id) WHERE is_default` | 既定の住所は顧客あたり 1 件だけ |
 
 ## 6. 不変条件をどこで守っているか
+
+**不変条件の正はこの章とする。**他のドキュメントにある記述は要約で、食い違ったらここが正しい。
 
 | 不変条件 | 守っている仕組み |
 | --- | --- |

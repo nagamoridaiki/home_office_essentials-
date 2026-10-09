@@ -8,13 +8,6 @@
 - 用語は [用語集](01-ubiquitous-language.md)、ステータスは [状態遷移表](02-state-transitions.md)、テーブルは [論理データモデル](03-logical-data-model.md) を正とする。
 - **「走るタイミング」はどの画面のどの操作で呼ばれるか**、**「副作用」はレスポンス以外に起きる変化**を書いた。実装時に見落としやすいのはこの 2 列。
 
-### Drive 上のスナップショット
-
-| ファイル | 収録範囲 |
-| --- | --- |
-| [エンドポイント一覧](https://docs.google.com/spreadsheets/d/1Khk0d-j3XHVWWZ928Jn9tW1hygpqK6eeo5_7GxUHtdw/edit) | 2 章 |
-| [共通規約](https://docs.google.com/spreadsheets/d/1zaZ5yc9RvEaiVNFUzaPUqNsZpQDrH4Hoqti4uIfLIZE/edit) | 1 章 |
-
 ## 1. 共通規約
 
 | 項目 | 決めたこと |
