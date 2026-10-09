@@ -352,4 +352,4 @@ erDiagram
 | --- | --- |
 | 1 点ものが二重に売れない | ① `inventories` の `lock_checkout_session_id` と `lock_expires_at` が在庫 1 行に 1 組しかない（二重の取り置きが表現できない）② 取得は `SELECT ... FOR UPDATE SKIP LOCKED` で 1 行だけ掴む ③ `selling_order_items.inventory_id` の UNIQUE が最後の砦 ④ `stripe_webhook_events.stripe_event_id` の UNIQUE で Webhook の二重適用を弾く |
 | 在庫ステータスが不正に遷移しない | ① 各ステータス列の `CHECK` で値を限定 ② 許可された遷移だけをユースケース層に実装（状態遷移表 4 章） ③ 5 章の横断 `CHECK` で矛盾した組み合わせを禁止 |
-| 他人の個人データ・税務データに URL を書き換えても到達できない | ① 顧客と管理者をテーブルから分離（`customers` / `admins`、セッションも別） ② 顧客向け URL は `public_id uuid` を使い連番を出さない ③ 顧客自身は URL に出さず `/api/me/...` でセッションから引く ④ 認可はミドルウェアで強制し、ハンドラごとの判断にしない |
+| 他人の個人データ・税務データに URL を書き換えても到達できない | ① 顧客と管理者をテーブルから分離（`customers` / `admins`、セッションも別） ② 顧客向け URL は `public_id uuid` を使い連番を出さない ③ 顧客自身は URL に出さず `/me/...` でセッションから引く ④ 認可はミドルウェアで強制し、ハンドラごとの判断にしない |
