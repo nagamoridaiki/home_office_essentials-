@@ -42,6 +42,7 @@ EC ドメインを実装する前に `docs/design/README.md` を読む。索引�
 
 - パッケージマネージャは **pnpm** を使う（npm / yarn は使わない）
 - シークレットや `.env*` をコミットしない
+- ドメイン層・ユースケース層を変えたらテストを付け、`go test ./...` を通してから完了とする（詳細は `.claude/rules/testing.md`）
 - ユーザーが明示しない限り git commit / push しない
 
 ## 関連
