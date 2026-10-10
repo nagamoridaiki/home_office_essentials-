@@ -6,16 +6,20 @@
 
 - **全部読まないこと。** 4 本の合計は約 31,000 トークンあり、読むだけでコンテキストを使い切る。
 - まずこの README の「3. 問いから引く」で場所を特定し、**必要な章だけ**開く。
+- 章だけ開くときは、見出しの行番号を出してから、その範囲だけ読む。行番号は編集で変わるので、毎回この方法で引く。
+  - 見出しを出す: `grep -n '^##' 03-logical-data-model.md`
+  - 出た行番号から次の見出しの手前までを読む（Read の `offset` / `limit`）
 - 章の中でも、表の特定の行だけ必要なら grep で引く（例: `grep 'inspected' 02-state-transitions.md`）。
+- `02` と `03` の 3 章（Mermaid の図）は人が全体像を見るためのもの。実装では表を読み、図は開かない（遷移は `02` の 4 章、関連は `03` の 2 章「主な関連」列にある）。
 
 ## 2. 設計書の一覧
 
 | ファイル | 中身 | 行数 | 目安 |
 | --- | --- | --- | --- |
-| [01-ubiquitous-language.md](01-ubiquitous-language.md) | 用語集 65 語。名前の正 | 192 | 約 8,000 トークン |
-| [02-state-transitions.md](02-state-transitions.md) | ステータス 21・遷移 49 件。許可と禁止の正 | 225 | 約 5,500 トークン |
-| [03-logical-data-model.md](03-logical-data-model.md) | 24 テーブル・157 カラム。スキーマの正 | 355 | 約 10,000 トークン |
-| [04-api-list.md](04-api-list.md) | エンドポイント 59 本。契約の正 | 164 | 約 7,500 トークン |
+| [01-ubiquitous-language.md](01-ubiquitous-language.md) | 用語集 65 語。名前の正 | 179 | 約 8,000 トークン |
+| [02-state-transitions.md](02-state-transitions.md) | ステータス 21・遷移 49 件。許可と禁止の正 | 215 | 約 5,500 トークン |
+| [03-logical-data-model.md](03-logical-data-model.md) | 24 テーブル・157 カラム。スキーマの正 | 343 | 約 10,000 トークン |
+| [04-api-list.md](04-api-list.md) | エンドポイント 59 本。契約の正 | 157 | 約 7,500 トークン |
 | `diagrams/*.svg` | 状態遷移図 3 枚、カラム付き ER 図 4 枚 | — | 画像 |
 
 ## 3. 問いから引く
