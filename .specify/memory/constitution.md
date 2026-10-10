@@ -77,6 +77,7 @@
 
 - 起動と DB 操作の手順は `README.md` を正とする。
 - バックエンドの層分け・HTTP・Go の慣例は `.claude/rules/backend.md` を正とする。
+- フロントエンドの責務の置き場所・API クライアント・型の扱いは `.claude/rules/frontend.md` を正とする。
 - マイグレーションの書き方は `.claude/rules/database.md` を正とする。
 - EC ドメインの用語は `docs/design/01-ubiquitous-language.md` を正とする。
 - ステータスと許可・禁止の遷移は `docs/design/02-state-transitions.md` を正とする。
@@ -110,4 +111,4 @@
 - 本書に書くのは「このリポジトリですでに真であること」に限る。
   守れないルールを書くと、後続の plan と analyze がノイズを生む。
 
-**Version**: 1.0.1 | **Ratified**: 2026-09-20 | **Last Amended**: 2026-10-10
+**Version**: 1.0.2 | **Ratified**: 2026-09-20 | **Last Amended**: 2026-10-10
