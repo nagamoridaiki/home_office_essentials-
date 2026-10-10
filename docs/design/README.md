@@ -14,13 +14,13 @@
 
 ## 2. 設計書の一覧
 
-| ファイル | 中身 | 行数 | 目安 |
-| --- | --- | --- | --- |
-| [01-ubiquitous-language.md](01-ubiquitous-language.md) | 用語集 65 語。名前の正 | 179 | 約 8,000 トークン |
-| [02-state-transitions.md](02-state-transitions.md) | ステータス 21・遷移 49 件。許可と禁止の正 | 215 | 約 5,500 トークン |
-| [03-logical-data-model.md](03-logical-data-model.md) | 24 テーブル・157 カラム。スキーマの正 | 343 | 約 10,000 トークン |
-| [04-api-list.md](04-api-list.md) | エンドポイント 59 本。契約の正 | 157 | 約 7,500 トークン |
-| `diagrams/*.svg` | 状態遷移図 3 枚、カラム付き ER 図 4 枚 | — | 画像 |
+| ファイル | 中身 | 目安 |
+| --- | --- | --- |
+| [01-ubiquitous-language.md](01-ubiquitous-language.md) | 用語集 65 語。名前の正 | 約 8,000 トークン |
+| [02-state-transitions.md](02-state-transitions.md) | ステータス 21・遷移 49 件。許可と禁止の正 | 約 5,500 トークン |
+| [03-logical-data-model.md](03-logical-data-model.md) | 24 テーブル・157 カラム。スキーマの正 | 約 10,000 トークン |
+| [04-api-list.md](04-api-list.md) | エンドポイント 59 本。契約の正 | 約 7,500 トークン |
+| `diagrams/*.svg` | 状態遷移図 3 枚、カラム付き ER 図 4 枚 | 画像 |
 
 ## 3. 問いから引く
 
