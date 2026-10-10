@@ -24,6 +24,7 @@
 - 用語はユビキタス言語に揃える。コード名・API・UI 文言を勝手に別名にしてはならない。
 - 境界づけられたコンテキストを意識し、またぐときは明示的な連携を検討する。
 - エンドポイントや契約を変更するときは、フロントエンドの API クライアントと型をセットで整合させなければならない。
+- 揃える先の対応表は `docs/design/01-ubiquitous-language.md` にある。使ってはいけない別名は同書の 4 章にある。
 
 **根拠**: 同じ概念が層ごとに違う名前で呼ばれると、仕様・計画・実装の照合が成立しなくなる。
 名前の一致は、後続の plan と analyze が機能するための前提である。
@@ -76,7 +77,14 @@
 
 - 起動と DB 操作の手順は `README.md` を正とする。
 - バックエンドの層分け・HTTP・Go の慣例は `.claude/rules/backend.md` を正とする。
+- フロントエンドの責務の置き場所・API クライアント・型の扱いは `.claude/rules/frontend.md` を正とする。
 - マイグレーションの書き方は `.claude/rules/database.md` を正とする。
+- EC ドメインの用語は `docs/design/01-ubiquitous-language.md` を正とする。
+- ステータスと許可・禁止の遷移は `docs/design/02-state-transitions.md` を正とする。
+- テーブル・カラム・制約は `docs/design/03-logical-data-model.md` を正とする。
+- エンドポイントの契約は `docs/design/04-api-list.md` を正とする。
+- 不変条件とその守り方は `docs/design/03-logical-data-model.md` の 6 章を正とする。
+- どこに何が書いてあるかは `docs/design/README.md` を索引とする。設計書は全部読まず、索引から必要な章だけ開く。
 - スキーマを変更したときは、マイグレーションの適用に加えて sqlc の再生成まで行う。
 
 本 constitution はこれらを**複製しない**。判断基準のみを本書に置き、手順は上記の出典を参照する。
@@ -103,4 +111,4 @@
 - 本書に書くのは「このリポジトリですでに真であること」に限る。
   守れないルールを書くと、後続の plan と analyze がノイズを生む。
 
-**Version**: 1.0.0 | **Ratified**: 2026-09-20 | **Last Amended**: 2026-09-20
+**Version**: 1.0.2 | **Ratified**: 2026-09-20 | **Last Amended**: 2026-10-10

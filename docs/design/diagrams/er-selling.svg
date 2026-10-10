@@ -1,0 +1,156 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="1882" viewBox="0 0 680 1882" role="img"><title>ER 図 販売</title><desc>チェックアウトセッションから販売注文が1対1で確定し、注文は明細・届け先・決済・配送を持つ。Webhook 台帳はどのテーブルとも外部キーで結ばない。</desc>
+<style>text{font-family:"Noto Sans CJK JP","Noto Sans JP","Hiragino Sans",system-ui,sans-serif}
+.ts{font-size:12px;fill:#444441}.th{font-size:14px;font-weight:500}
+.mono{font-family:"SFMono-Regular",Menlo,Consolas,"DejaVu Sans Mono",monospace;font-size:12px;fill:#2C2C2A}
+.key{font-family:"SFMono-Regular",Menlo,Consolas,"DejaVu Sans Mono",monospace;font-size:12px;fill:#5F5E5A}
+.arr{stroke:#5F5E5A;stroke-width:1.5;fill:none}</style>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<rect x="0" y="0" width="680" height="1882" fill="#FFFFFF"/>
+<rect x="130" y="50" width="420" height="218" rx="4" fill="#FFFFFF" stroke="#B4B2A9" stroke-width="0.5"/>
+<rect x="130" y="50" width="420" height="28" rx="4" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+<text class="th" x="142" y="69" fill="#2C2C2A">customer_addresses</text>
+<text class="ts" x="538" y="69" fill="#5F5E5A" text-anchor="end">顧客の登録住所</text>
+<text class="mono" xml:space="preserve" x="142" y="96">id                        bigint       </text>
+<text class="key" xml:space="preserve" x="422" y="96">PK</text>
+<text class="mono" xml:space="preserve" x="142" y="114">customer_id               bigint       </text>
+<text class="key" xml:space="preserve" x="422" y="114">FK</text>
+<text class="mono" xml:space="preserve" x="142" y="132">recipient_name            text         </text>
+<text class="mono" xml:space="preserve" x="142" y="150">postal_code               text         </text>
+<text class="mono" xml:space="preserve" x="142" y="168">prefecture                text         </text>
+<text class="mono" xml:space="preserve" x="142" y="186">city                      text         </text>
+<text class="mono" xml:space="preserve" x="142" y="204">street_address            text         </text>
+<text class="mono" xml:space="preserve" x="142" y="222">building                  text         </text>
+<text class="key" xml:space="preserve" x="422" y="222">可</text>
+<text class="mono" xml:space="preserve" x="142" y="240">phone_number              text         </text>
+<text class="mono" xml:space="preserve" x="142" y="258">is_default                boolean      </text>
+<rect x="130" y="304" width="420" height="146" rx="4" fill="#FFFFFF" stroke="#B4B2A9" stroke-width="0.5"/>
+<rect x="130" y="304" width="420" height="28" rx="4" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+<text class="th" x="142" y="323" fill="#04342C">checkout_sessions</text>
+<text class="ts" x="538" y="323" fill="#0F6E56" text-anchor="end">チェックアウトセッション</text>
+<text class="mono" xml:space="preserve" x="142" y="350">id                        bigint       </text>
+<text class="key" xml:space="preserve" x="422" y="350">PK</text>
+<text class="mono" xml:space="preserve" x="142" y="368">customer_id               bigint       </text>
+<text class="key" xml:space="preserve" x="422" y="368">FK</text>
+<text class="mono" xml:space="preserve" x="142" y="386">status                    text         </text>
+<text class="mono" xml:space="preserve" x="142" y="404">expires_at                timestamptz  </text>
+<text class="mono" xml:space="preserve" x="142" y="422">stripe_payment_intent_id  text         </text>
+<text class="key" xml:space="preserve" x="422" y="422">U 可</text>
+<text class="mono" xml:space="preserve" x="142" y="440">completed_at              timestamptz  </text>
+<text class="key" xml:space="preserve" x="422" y="440">可</text>
+<rect x="130" y="486" width="420" height="272" rx="4" fill="#FFFFFF" stroke="#B4B2A9" stroke-width="0.5"/>
+<rect x="130" y="486" width="420" height="28" rx="4" fill="#EEEDFE" stroke="#534AB7" stroke-width="0.5"/>
+<text class="th" x="142" y="505" fill="#26215C">selling_orders</text>
+<text class="ts" x="538" y="505" fill="#534AB7" text-anchor="end">販売注文</text>
+<text class="mono" xml:space="preserve" x="142" y="532">id                        bigint       </text>
+<text class="key" xml:space="preserve" x="422" y="532">PK</text>
+<text class="mono" xml:space="preserve" x="142" y="550">public_id                 uuid         </text>
+<text class="key" xml:space="preserve" x="422" y="550">U</text>
+<text class="mono" xml:space="preserve" x="142" y="568">order_number              text         </text>
+<text class="key" xml:space="preserve" x="422" y="568">U</text>
+<text class="mono" xml:space="preserve" x="142" y="586">customer_id               bigint       </text>
+<text class="key" xml:space="preserve" x="422" y="586">FK</text>
+<text class="mono" xml:space="preserve" x="142" y="604">checkout_session_id       bigint       </text>
+<text class="key" xml:space="preserve" x="422" y="604">FK U</text>
+<text class="mono" xml:space="preserve" x="142" y="622">shipping_address_id       bigint       </text>
+<text class="key" xml:space="preserve" x="422" y="622">FK U</text>
+<text class="mono" xml:space="preserve" x="142" y="640">selling_order_status      text         </text>
+<text class="mono" xml:space="preserve" x="142" y="658">subtotal                  bigint       </text>
+<text class="mono" xml:space="preserve" x="142" y="676">shipping_fee              bigint       </text>
+<text class="mono" xml:space="preserve" x="142" y="694">tax_amount                bigint       </text>
+<text class="mono" xml:space="preserve" x="142" y="712">total_amount              bigint       </text>
+<text class="mono" xml:space="preserve" x="142" y="730">canceled_at               timestamptz  </text>
+<text class="key" xml:space="preserve" x="422" y="730">可</text>
+<text class="mono" xml:space="preserve" x="142" y="748">cancel_reason             text         </text>
+<text class="key" xml:space="preserve" x="422" y="748">可</text>
+<rect x="130" y="794" width="420" height="146" rx="4" fill="#FFFFFF" stroke="#B4B2A9" stroke-width="0.5"/>
+<rect x="130" y="794" width="420" height="28" rx="4" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+<text class="th" x="142" y="813" fill="#04342C">selling_order_items</text>
+<text class="ts" x="538" y="813" fill="#0F6E56" text-anchor="end">注文明細</text>
+<text class="mono" xml:space="preserve" x="142" y="840">id                        bigint       </text>
+<text class="key" xml:space="preserve" x="422" y="840">PK</text>
+<text class="mono" xml:space="preserve" x="142" y="858">selling_order_id          bigint       </text>
+<text class="key" xml:space="preserve" x="422" y="858">FK</text>
+<text class="mono" xml:space="preserve" x="142" y="876">inventory_id              bigint       </text>
+<text class="key" xml:space="preserve" x="422" y="876">FK U</text>
+<text class="mono" xml:space="preserve" x="142" y="894">selling_product_id        bigint       </text>
+<text class="key" xml:space="preserve" x="422" y="894">FK</text>
+<text class="mono" xml:space="preserve" x="142" y="912">product_name              text         </text>
+<text class="mono" xml:space="preserve" x="142" y="930">unit_price                bigint       </text>
+<rect x="130" y="976" width="420" height="182" rx="4" fill="#FFFFFF" stroke="#B4B2A9" stroke-width="0.5"/>
+<rect x="130" y="976" width="420" height="28" rx="4" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+<text class="th" x="142" y="995" fill="#2C2C2A">shipping_addresses</text>
+<text class="ts" x="538" y="995" fill="#5F5E5A" text-anchor="end">配送先住所</text>
+<text class="mono" xml:space="preserve" x="142" y="1022">id                        bigint       </text>
+<text class="key" xml:space="preserve" x="422" y="1022">PK</text>
+<text class="mono" xml:space="preserve" x="142" y="1040">recipient_name            text         </text>
+<text class="mono" xml:space="preserve" x="142" y="1058">postal_code               text         </text>
+<text class="mono" xml:space="preserve" x="142" y="1076">prefecture                text         </text>
+<text class="mono" xml:space="preserve" x="142" y="1094">city                      text         </text>
+<text class="mono" xml:space="preserve" x="142" y="1112">street_address            text         </text>
+<text class="mono" xml:space="preserve" x="142" y="1130">building                  text         </text>
+<text class="key" xml:space="preserve" x="422" y="1130">可</text>
+<text class="mono" xml:space="preserve" x="142" y="1148">phone_number              text         </text>
+<rect x="130" y="1194" width="420" height="164" rx="4" fill="#FFFFFF" stroke="#B4B2A9" stroke-width="0.5"/>
+<rect x="130" y="1194" width="420" height="28" rx="4" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+<text class="th" x="142" y="1213" fill="#2C2C2A">payments</text>
+<text class="ts" x="538" y="1213" fill="#5F5E5A" text-anchor="end">決済</text>
+<text class="mono" xml:space="preserve" x="142" y="1240">id                        bigint       </text>
+<text class="key" xml:space="preserve" x="422" y="1240">PK</text>
+<text class="mono" xml:space="preserve" x="142" y="1258">selling_order_id          bigint       </text>
+<text class="key" xml:space="preserve" x="422" y="1258">FK U</text>
+<text class="mono" xml:space="preserve" x="142" y="1276">stripe_payment_intent_id  text         </text>
+<text class="key" xml:space="preserve" x="422" y="1276">U</text>
+<text class="mono" xml:space="preserve" x="142" y="1294">amount                    bigint       </text>
+<text class="mono" xml:space="preserve" x="142" y="1312">status                    text         </text>
+<text class="mono" xml:space="preserve" x="142" y="1330">paid_at                   timestamptz  </text>
+<text class="mono" xml:space="preserve" x="142" y="1348">refunded_at               timestamptz  </text>
+<text class="key" xml:space="preserve" x="422" y="1348">可</text>
+<rect x="130" y="1394" width="420" height="182" rx="4" fill="#FFFFFF" stroke="#B4B2A9" stroke-width="0.5"/>
+<rect x="130" y="1394" width="420" height="28" rx="4" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+<text class="th" x="142" y="1413" fill="#2C2C2A">shipments</text>
+<text class="ts" x="538" y="1413" fill="#5F5E5A" text-anchor="end">配送</text>
+<text class="mono" xml:space="preserve" x="142" y="1440">id                        bigint       </text>
+<text class="key" xml:space="preserve" x="422" y="1440">PK</text>
+<text class="mono" xml:space="preserve" x="142" y="1458">selling_order_id          bigint       </text>
+<text class="key" xml:space="preserve" x="422" y="1458">FK U</text>
+<text class="mono" xml:space="preserve" x="142" y="1476">carrier_code              text         </text>
+<text class="mono" xml:space="preserve" x="142" y="1494">tracking_number           text         </text>
+<text class="key" xml:space="preserve" x="422" y="1494">可</text>
+<text class="mono" xml:space="preserve" x="142" y="1512">requested_delivery_date   date         </text>
+<text class="key" xml:space="preserve" x="422" y="1512">可</text>
+<text class="mono" xml:space="preserve" x="142" y="1530">requested_time_slot       text         </text>
+<text class="key" xml:space="preserve" x="422" y="1530">可</text>
+<text class="mono" xml:space="preserve" x="142" y="1548">shipped_at                timestamptz  </text>
+<text class="key" xml:space="preserve" x="422" y="1548">可</text>
+<text class="mono" xml:space="preserve" x="142" y="1566">delivered_at              timestamptz  </text>
+<text class="key" xml:space="preserve" x="422" y="1566">可</text>
+<rect x="130" y="1612" width="420" height="146" rx="4" fill="#FFFFFF" stroke="#B4B2A9" stroke-width="0.5"/>
+<rect x="130" y="1612" width="420" height="28" rx="4" fill="#FAEEDA" stroke="#854F0B" stroke-width="0.5"/>
+<text class="th" x="142" y="1631" fill="#412402">stripe_webhook_events</text>
+<text class="ts" x="538" y="1631" fill="#854F0B" text-anchor="end">決済 Webhook 台帳</text>
+<text class="mono" xml:space="preserve" x="142" y="1658">id                        bigint       </text>
+<text class="key" xml:space="preserve" x="422" y="1658">PK</text>
+<text class="mono" xml:space="preserve" x="142" y="1676">stripe_event_id           text         </text>
+<text class="key" xml:space="preserve" x="422" y="1676">U</text>
+<text class="mono" xml:space="preserve" x="142" y="1694">event_type                text         </text>
+<text class="mono" xml:space="preserve" x="142" y="1712">payload                   jsonb        </text>
+<text class="mono" xml:space="preserve" x="142" y="1730">processed_at              timestamptz  </text>
+<text class="key" xml:space="preserve" x="422" y="1730">可</text>
+<text class="mono" xml:space="preserve" x="142" y="1748">error_message             text         </text>
+<text class="key" xml:space="preserve" x="422" y="1748">可</text>
+<line class="arr" x1="340" y1="452" x2="340" y2="484" marker-end="url(#arrow)"/>
+<text class="ts" x="348" y="472">1:1</text>
+<line class="arr" x1="340" y1="760" x2="340" y2="792" marker-end="url(#arrow)"/>
+<text class="ts" x="348" y="780">1:N</text>
+<path class="arr" d="M130 622 H100 V1067 H128" marker-end="url(#arrow)"/>
+<text class="ts" x="108" y="844">1:1</text>
+<path class="arr" d="M130 622 H85 V1276 H128" marker-end="url(#arrow)"/>
+<text class="ts" x="93" y="949">1:1</text>
+<path class="arr" d="M130 622 H70 V1485 H128" marker-end="url(#arrow)"/>
+<text class="ts" x="78" y="1053">1:1</text>
+<text class="ts" x="40" y="1792">customer_id は customers（認証の図）を参照する</text>
+<text class="ts" x="40" y="1810">selling_order_items.inventory_id は inventories（在庫の図）を 1:1 で参照する</text>
+<text class="ts" x="40" y="1828">stripe_webhook_events はどのテーブルとも外部キーで結ばない</text>
+<text class="ts" x="40" y="1854">PK 主キー　FK 外部キー　U UNIQUE　可 NULL 可</text>
+<text class="ts" x="40" y="1872">created_at / updated_at は全テーブル共通のため省略</text>
+</svg>

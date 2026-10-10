@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="680" height="940" viewBox="0 0 680 940" role="img"><title>ER 図 認証・アクター</title><desc>顧客は認証情報を1対1、セッションを1対Nで持つ。管理者は顧客と別テーブルで、専用のセッションを持つ。</desc>
+<style>text{font-family:"Noto Sans CJK JP","Noto Sans JP","Hiragino Sans",system-ui,sans-serif}
+.ts{font-size:12px;fill:#444441}.th{font-size:14px;font-weight:500}
+.mono{font-family:"SFMono-Regular",Menlo,Consolas,"DejaVu Sans Mono",monospace;font-size:12px;fill:#2C2C2A}
+.key{font-family:"SFMono-Regular",Menlo,Consolas,"DejaVu Sans Mono",monospace;font-size:12px;fill:#5F5E5A}
+.arr{stroke:#5F5E5A;stroke-width:1.5;fill:none}</style>
+<defs><marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse"><path d="M2 1L8 5L2 9" fill="none" stroke="context-stroke" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></marker></defs>
+<rect x="0" y="0" width="680" height="940" fill="#FFFFFF"/>
+<rect x="130" y="50" width="420" height="164" rx="4" fill="#FFFFFF" stroke="#B4B2A9" stroke-width="0.5"/>
+<rect x="130" y="50" width="420" height="28" rx="4" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+<text class="th" x="142" y="69" fill="#04342C">customers</text>
+<text class="ts" x="538" y="69" fill="#0F6E56" text-anchor="end">顧客</text>
+<text class="mono" xml:space="preserve" x="142" y="96">id                        bigint       </text>
+<text class="key" xml:space="preserve" x="422" y="96">PK</text>
+<text class="mono" xml:space="preserve" x="142" y="114">family_name               text         </text>
+<text class="mono" xml:space="preserve" x="142" y="132">given_name                text         </text>
+<text class="mono" xml:space="preserve" x="142" y="150">family_name_kana          text         </text>
+<text class="mono" xml:space="preserve" x="142" y="168">given_name_kana           text         </text>
+<text class="mono" xml:space="preserve" x="142" y="186">email                     text         </text>
+<text class="key" xml:space="preserve" x="422" y="186">U</text>
+<text class="mono" xml:space="preserve" x="142" y="204">phone_number              text         </text>
+<rect x="130" y="250" width="420" height="128" rx="4" fill="#FFFFFF" stroke="#B4B2A9" stroke-width="0.5"/>
+<rect x="130" y="250" width="420" height="28" rx="4" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+<text class="th" x="142" y="269" fill="#2C2C2A">customer_credentials</text>
+<text class="ts" x="538" y="269" fill="#5F5E5A" text-anchor="end">顧客の認証情報</text>
+<text class="mono" xml:space="preserve" x="142" y="296">id                        bigint       </text>
+<text class="key" xml:space="preserve" x="422" y="296">PK</text>
+<text class="mono" xml:space="preserve" x="142" y="314">customer_id               bigint       </text>
+<text class="key" xml:space="preserve" x="422" y="314">FK U</text>
+<text class="mono" xml:space="preserve" x="142" y="332">password_hash             text         </text>
+<text class="key" xml:space="preserve" x="422" y="332">可</text>
+<text class="mono" xml:space="preserve" x="142" y="350">auth_issuer               text         </text>
+<text class="key" xml:space="preserve" x="422" y="350">可</text>
+<text class="mono" xml:space="preserve" x="142" y="368">auth_subject              text         </text>
+<text class="key" xml:space="preserve" x="422" y="368">可</text>
+<rect x="130" y="414" width="420" height="128" rx="4" fill="#FFFFFF" stroke="#B4B2A9" stroke-width="0.5"/>
+<rect x="130" y="414" width="420" height="28" rx="4" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+<text class="th" x="142" y="433" fill="#2C2C2A">customer_sessions</text>
+<text class="ts" x="538" y="433" fill="#5F5E5A" text-anchor="end">顧客セッション</text>
+<text class="mono" xml:space="preserve" x="142" y="460">id                        bigint       </text>
+<text class="key" xml:space="preserve" x="422" y="460">PK</text>
+<text class="mono" xml:space="preserve" x="142" y="478">customer_id               bigint       </text>
+<text class="key" xml:space="preserve" x="422" y="478">FK</text>
+<text class="mono" xml:space="preserve" x="142" y="496">token_hash                text         </text>
+<text class="key" xml:space="preserve" x="422" y="496">U</text>
+<text class="mono" xml:space="preserve" x="142" y="514">expires_at                timestamptz  </text>
+<text class="mono" xml:space="preserve" x="142" y="532">revoked_at                timestamptz  </text>
+<text class="key" xml:space="preserve" x="422" y="532">可</text>
+<rect x="130" y="578" width="420" height="110" rx="4" fill="#FFFFFF" stroke="#B4B2A9" stroke-width="0.5"/>
+<rect x="130" y="578" width="420" height="28" rx="4" fill="#E1F5EE" stroke="#0F6E56" stroke-width="0.5"/>
+<text class="th" x="142" y="597" fill="#04342C">admins</text>
+<text class="ts" x="538" y="597" fill="#0F6E56" text-anchor="end">管理者</text>
+<text class="mono" xml:space="preserve" x="142" y="624">id                        bigint       </text>
+<text class="key" xml:space="preserve" x="422" y="624">PK</text>
+<text class="mono" xml:space="preserve" x="142" y="642">email                     text         </text>
+<text class="key" xml:space="preserve" x="422" y="642">U</text>
+<text class="mono" xml:space="preserve" x="142" y="660">password_hash             text         </text>
+<text class="mono" xml:space="preserve" x="142" y="678">display_name              text         </text>
+<rect x="130" y="724" width="420" height="128" rx="4" fill="#FFFFFF" stroke="#B4B2A9" stroke-width="0.5"/>
+<rect x="130" y="724" width="420" height="28" rx="4" fill="#F1EFE8" stroke="#5F5E5A" stroke-width="0.5"/>
+<text class="th" x="142" y="743" fill="#2C2C2A">admin_sessions</text>
+<text class="ts" x="538" y="743" fill="#5F5E5A" text-anchor="end">管理者セッション</text>
+<text class="mono" xml:space="preserve" x="142" y="770">id                        bigint       </text>
+<text class="key" xml:space="preserve" x="422" y="770">PK</text>
+<text class="mono" xml:space="preserve" x="142" y="788">admin_id                  bigint       </text>
+<text class="key" xml:space="preserve" x="422" y="788">FK</text>
+<text class="mono" xml:space="preserve" x="142" y="806">token_hash                text         </text>
+<text class="key" xml:space="preserve" x="422" y="806">U</text>
+<text class="mono" xml:space="preserve" x="142" y="824">expires_at                timestamptz  </text>
+<text class="mono" xml:space="preserve" x="142" y="842">revoked_at                timestamptz  </text>
+<text class="key" xml:space="preserve" x="422" y="842">可</text>
+<line class="arr" x1="340" y1="216" x2="340" y2="248" marker-end="url(#arrow)"/>
+<text class="ts" x="348" y="236">1:1</text>
+<path class="arr" d="M130 132 H100 V478 H128" marker-end="url(#arrow)"/>
+<text class="ts" x="108" y="305">1:N</text>
+<line class="arr" x1="340" y1="690" x2="340" y2="722" marker-end="url(#arrow)"/>
+<text class="ts" x="348" y="710">1:N</text>
+<text class="ts" x="40" y="886">顧客の住所と振込先口座は、販売・買取の図に置いた</text>
+<text class="ts" x="40" y="912">PK 主キー　FK 外部キー　U UNIQUE　可 NULL 可</text>
+<text class="ts" x="40" y="930">created_at / updated_at は全テーブル共通のため省略</text>
+</svg>
