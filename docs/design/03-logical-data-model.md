@@ -27,6 +27,7 @@
 ### 置いた前提
 
 - 認証は MVP では自前実装。将来 Cognito などの OIDC に切り替えるため、`customer_credentials` に `auth_issuer` / `auth_subject` を先に用意しておく。切り替え時は `password_hash` を使わなくなるだけで、`customers` 以降のテーブルは変わらない。
+- アカウント作成はメールアドレスとパスワードだけで行う。`customers` の氏名・フリガナ・電話番号は NULL 可とし、プロフィール編集（`PATCH /me`）で後から登録する。購入や買取を申し込む前に揃っていることは、DB ではなく各ユースケースで確かめる。OIDC に切り替えたときも、初回ログインで受け取れるのはメールアドレスと `sub` だけなので、同じ形で顧客を作れる。
 - 決済手段はカードのみ（Stripe）。`payments` に決済手段の列を持たない。
 - カートはサーバに持たない。ブラウザの `localStorage` に販売枠 ID を置くだけで、在庫は確保しない。
 
@@ -133,12 +134,12 @@ erDiagram
 
 | テーブル | カラム | 型 | NULL | 制約 | 説明 | 関連 |
 | --- | --- | --- | --- | --- | --- | --- |
-| `customers` | `family_name` | text | 不可 | — | 姓 | — |
-| `customers` | `given_name` | text | 不可 | — | 名 | — |
-| `customers` | `family_name_kana` | text | 不可 | — | 姓のフリガナ。振込先の名義照合に使う | — |
-| `customers` | `given_name_kana` | text | 不可 | — | 名のフリガナ | — |
+| `customers` | `family_name` | text | 可 | — | 姓。アカウント作成時は NULL で、プロフィール編集で登録する | — |
+| `customers` | `given_name` | text | 可 | — | 名 | — |
+| `customers` | `family_name_kana` | text | 可 | — | 姓のフリガナ。振込先の名義照合に使う | — |
+| `customers` | `given_name_kana` | text | 可 | — | 名のフリガナ | — |
 | `customers` | `email` | text | 不可 | UNIQUE | 連絡先。MVP ではログイン ID も兼ねる | — |
-| `customers` | `phone_number` | text | 不可 | — | 配送時の連絡と本人確認に使う | — |
+| `customers` | `phone_number` | text | 可 | — | 配送時の連絡と本人確認に使う | — |
 | `customer_credentials` | `customer_id` | bigint | 不可 | UNIQUE, FK → `customers.id` | どの顧客の認証情報か | 1:1 `customers` |
 | `customer_credentials` | `password_hash` | text | 可 | — | 自前認証用。OIDC に切り替えたら使わなくなる | — |
 | `customer_credentials` | `auth_issuer` | text | 可 | UNIQUE (`auth_issuer`, `auth_subject`) | OIDC の `iss`。MVP では NULL | — |
