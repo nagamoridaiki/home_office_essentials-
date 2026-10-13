@@ -71,19 +71,19 @@ description: "顧客のアカウント作成・ログイン・ログアウト（
 
 ### インフラ
 
-- [ ] T021 [P] `backend/auth/session_token.go` に `SessionTokenGenerator` の実装を書く：`crypto/rand` で 32 バイト → base64url（パディングなし。`base64.RawURLEncoding`）を生の値にし、`crypto/sha256` の 16 進文字列（64 文字）を `domain.SessionTokenHash` にする（research R2）
-- [ ] T022 [P] `backend/repository/postgres_customer.go` に `domain.CustomerRepository` の `FindByID` を実装する。`pgx.ErrNoRows` は `domain.ErrCustomerNotFound` に変える。sqlc の型は外に出さず `domain.Customer` に詰め替える（NULL の列は `nil`）（T012 の後）
-- [ ] T023 [P] `backend/repository/postgres_customer_session.go` に `domain.CustomerSessionRepository` の `Create`・`FindByTokenHash`（なければ `domain.ErrSessionNotFound`）を実装する。`Revoke` は US3 で足す（T012 の後）
+- [x] T021 [P] `backend/auth/session_token.go` に `SessionTokenGenerator` の実装を書く：`crypto/rand` で 32 バイト → base64url（パディングなし。`base64.RawURLEncoding`）を生の値にし、`crypto/sha256` の 16 進文字列（64 文字）を `domain.SessionTokenHash` にする（research R2）
+- [x] T022 [P] `backend/repository/postgres_customer.go` に `domain.CustomerRepository` の `FindByID` を実装する。`pgx.ErrNoRows` は `domain.ErrCustomerNotFound` に変える。sqlc の型は外に出さず `domain.Customer` に詰め替える（NULL の列は `nil`）（T012 の後）
+- [x] T023 [P] `backend/repository/postgres_customer_session.go` に `domain.CustomerSessionRepository` の `Create`・`FindByTokenHash`（なければ `domain.ErrSessionNotFound`）を実装する。`Revoke` は US3 で足す（T012 の後）
 
 ### HTTP（controller）
 
-- [ ] T024 [P] `backend/controller/error_response.go` に `04` のエラー形式 `{"error":{"code","message","details"}}` を書き出す関数を書く。`details` は検証エラー以外は空配列。`code` は `invalid_request`(400)・`unsupported_media_type`(415)・`validation_failed`(422)・`email_already_used`(409)・`invalid_credentials`(401)・`unauthenticated`(401)・`internal_error`(500)。JSON 本文の読み取りで `Content-Type` が `application/json` 以外なら 415、読めなければ 400 にする共通関数もここに置く（research R4）
-- [ ] T025 [P] `backend/controller/session_cookie.go` に Cookie `customer_session` の発行と削除を書く。発行は `HttpOnly; SameSite=Lax; Path=/; Max-Age=2592000`、`Secure` は設定値で切り替える（既定 true）。削除は同じ名前・`Path`・`Max-Age=0`（contracts「セッション Cookie」）
-- [ ] T026 [P] `backend/controller/cors.go` の `EnableCORS` に `Access-Control-Allow-Credentials: true` を足す。許可するオリジンは `http://localhost:3000` の 1 つのまま（`*` にしない）
-- [ ] T027 [P] `backend/controller/auth_middleware_test.go`（`package controller_test`）に `httptest` で書く：`RequireCustomer` は認証に成功すると次のハンドラでコンテキストから顧客 ID が読める／失敗すると 401 `unauthenticated` で次のハンドラを呼ばない／`CookieSessionAuthenticator` は Cookie がないとき `ErrUnauthenticated`
-- [ ] T028 `backend/controller/auth_middleware.go` に書く：`CustomerAuthenticator`（`AuthenticateRequest(r *http.Request) (customerID int64, err error)`）、`CookieSessionAuthenticator`（Cookie `customer_session` を読み `CustomerSessionUsecase.Authenticate` を呼ぶ）、`RequireCustomer(a CustomerAuthenticator) func(http.Handler) http.Handler`、`CustomerIDFromContext(ctx) (int64, bool)`（research R8・data-model 4 章。T027 の後）
-- [ ] T029 `backend/controller/me.go` に `GET /me` を書く。顧客 ID は `CustomerIDFromContext` だけから読み、リクエストに顧客の識別子を受け取らない（FR-016）。応答は contracts の「自分の情報」の形（`email`・`family_name`・`given_name`・`family_name_kana`・`given_name_kana`・`phone_number`、未登録は `null`、`id` は返さない）。自分の情報を JSON にする関数は `POST /customers`・`POST /sessions` でも使うので、このファイルに置く
-- [ ] T030 `backend/main.go` に依存の組み立てを足す：環境変数 `SESSION_COOKIE_SECURE`（`false` のときだけ `Secure` を外す）、`CustomerSessionUsecase`（`time.Now`）、`CustomerUsecase`、`CookieSessionAuthenticator`、`GET /me` を `RequireCustomer` で包んで登録する。既存の `/api/todos` は変えない
+- [x] T024 [P] `backend/controller/error_response.go` に `04` のエラー形式 `{"error":{"code","message","details"}}` を書き出す関数を書く。`details` は検証エラー以外は空配列。`code` は `invalid_request`(400)・`unsupported_media_type`(415)・`validation_failed`(422)・`email_already_used`(409)・`invalid_credentials`(401)・`unauthenticated`(401)・`internal_error`(500)。JSON 本文の読み取りで `Content-Type` が `application/json` 以外なら 415、読めなければ 400 にする共通関数もここに置く（research R4）
+- [x] T025 [P] `backend/controller/session_cookie.go` に Cookie `customer_session` の発行と削除を書く。発行は `HttpOnly; SameSite=Lax; Path=/; Max-Age=2592000`、`Secure` は設定値で切り替える（既定 true）。削除は同じ名前・`Path`・`Max-Age=0`（contracts「セッション Cookie」）
+- [x] T026 [P] `backend/controller/cors.go` の `EnableCORS` に `Access-Control-Allow-Credentials: true` を足す。許可するオリジンは `http://localhost:3000` の 1 つのまま（`*` にしない）
+- [x] T027 [P] `backend/controller/auth_middleware_test.go`（`package controller_test`）に `httptest` で書く：`RequireCustomer` は認証に成功すると次のハンドラでコンテキストから顧客 ID が読める／失敗すると 401 `unauthenticated` で次のハンドラを呼ばない／`CookieSessionAuthenticator` は Cookie がないとき `ErrUnauthenticated`
+- [x] T028 `backend/controller/auth_middleware.go` に書く：`CustomerAuthenticator`（`AuthenticateRequest(r *http.Request) (customerID int64, err error)`）、`CookieSessionAuthenticator`（Cookie `customer_session` を読み `CustomerSessionUsecase.Authenticate` を呼ぶ）、`RequireCustomer(a CustomerAuthenticator) func(http.Handler) http.Handler`、`CustomerIDFromContext(ctx) (int64, bool)`（research R8・data-model 4 章。T027 の後）
+- [x] T029 `backend/controller/me.go` に `GET /me` を書く。顧客 ID は `CustomerIDFromContext` だけから読み、リクエストに顧客の識別子を受け取らない（FR-016）。応答は contracts の「自分の情報」の形（`email`・`family_name`・`given_name`・`family_name_kana`・`given_name_kana`・`phone_number`、未登録は `null`、`id` は返さない）。自分の情報を JSON にする関数は `POST /customers`・`POST /sessions` でも使うので、このファイルに置く
+- [x] T030 `backend/main.go` に依存の組み立てを足す：環境変数 `SESSION_COOKIE_SECURE`（`false` のときだけ `Secure` を外す）、`CustomerSessionUsecase`（`time.Now`）、`CustomerUsecase`、`CookieSessionAuthenticator`、`GET /me` を `RequireCustomer` で包んで登録する。既存の `/api/todos` は変えない
 
 ### フロント（API クライアントの土台）
 
@@ -161,7 +161,7 @@ description: "顧客のアカウント作成・ログイン・ログアウト（
 ### Implementation for User Story 3
 
 - [ ] T054 [US3] `backend/usecase/customer_session.go` に `Revoke(ctx, raw string) error` を足す：ハッシュで引き、`domain.CustomerSession.Revoke(now)` が `ErrSessionNotActive` なら、またはセッションがなければ `ErrUnauthenticated`。成功したらリポジトリの `Revoke` を呼ぶ（T053 の後）
-- [ ] T055 [P] [US3] `backend/repository/postgres_customer_session.go` に `Revoke(ctx, id int64, at time.Time) error` を足す。`revoked_at IS NULL` の行だけ更新し、更新が 0 行なら `domain.ErrSessionNotActive` を返す
+- [x] T055 [P] [US3] `backend/repository/postgres_customer_session.go` に `Revoke(ctx, id int64, at time.Time) error` を足す。`revoked_at IS NULL` の行だけ更新し、更新が 0 行なら `domain.ErrSessionNotActive` を返す
 - [ ] T056 [US3] `backend/controller/customer_auth.go` に `DELETE /sessions` を足す：Cookie を読み `Revoke` を呼ぶ。成功なら Cookie を消して 204、Cookie がない・無効なら Cookie を消して 401 `unauthenticated`。ログアウトは FR-020 の差し替えの境目に含めないので、`RequireCustomer` を通さず Cookie を直接読んでよい（research R8）
 - [ ] T057 [US3] `backend/main.go` に `DELETE /sessions` を登録する
 - [ ] T058 [US3] `apps/web/src/lib/customer-api.ts` に `logout(): Promise<void>` を足す。204 でも 401 でも成功として扱う（spec の Edge Cases）

@@ -7,9 +7,11 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"time"
 
 	"github.com/jackc/pgx/v5/pgxpool"
 
+	"backend/auth"
 	"backend/controller"
 	"backend/repository"
 	"backend/usecase"
@@ -26,8 +28,15 @@ func main() {
 	todoUsecase := usecase.NewTodoUsecase(todoRepo)
 	todoController := controller.NewTodoController(todoUsecase)
 
+	sessionUsecase := usecase.NewCustomerSessionUsecase(
+		repository.NewPostgresCustomerSessionRepository(pool), auth.NewSessionTokens(), time.Now)
+	customerUsecase := usecase.NewCustomerUsecase(repository.NewPostgresCustomerRepository(pool))
+	requireCustomer := controller.RequireCustomer(controller.NewCookieSessionAuthenticator(sessionUsecase))
+	meController := controller.NewMeController(customerUsecase)
+
 	mux := http.NewServeMux()
 	todoController.Register(mux)
+	meController.Register(mux, requireCustomer)
 
 	fmt.Println("Backend running on http://localhost:8080")
 	log.Fatal(http.ListenAndServe(":8080", controller.EnableCORS(mux)))
