@@ -87,9 +87,9 @@ description: "顧客のアカウント作成・ログイン・ログアウト（
 
 ### フロント（API クライアントの土台）
 
-- [ ] T031 [P] `apps/web/src/types/customer.ts` に `Customer`（`email: string`、`family_name`・`given_name`・`family_name_kana`・`given_name_kana`・`phone_number` は `string | null`）と `ApiError`（`code`・`message`・`details: { field: string; code: string; message: string }[]`）の型を書く
-- [ ] T032 [P] `apps/web/src/lib/api-client.ts` に fetch の共通処理を書く：ベース URL は `http://localhost:8080`、`credentials: "include"`、本文があれば `Content-Type: application/json`、失敗時は `ApiError` とステータスを持つエラーを投げる
-- [ ] T033 `apps/web/src/lib/customer-api.ts` に `getMe(): Promise<Customer>`（`GET /me`）を書く。401 を呼び出し側が見分けられるようにする（T031・T032 の後）
+- [x] T031 [P] `apps/web/src/types/customer.ts` に `Customer`（`email: string`、`family_name`・`given_name`・`family_name_kana`・`given_name_kana`・`phone_number` は `string | null`）と `ApiError`（`code`・`message`・`details: { field: string; code: string; message: string }[]`）の型を書く
+- [x] T032 [P] `apps/web/src/lib/api-client.ts` に fetch の共通処理を書く：ベース URL は `http://localhost:8080`、`credentials: "include"`、本文があれば `Content-Type: application/json`、失敗時は `ApiError` とステータスを持つエラーを投げる
+- [x] T033 `apps/web/src/lib/customer-api.ts` に `getMe(): Promise<Customer>`（`GET /me`）を書く。401 を呼び出し側が見分けられるようにする（T031・T032 の後）
 
 **Checkpoint**: `go test ./...` が通り、DB に直接作った顧客とセッションで `GET /me` が 200、Cookie がなければ 401 になる
 
@@ -105,20 +105,20 @@ description: "顧客のアカウント作成・ログイン・ログアウト（
 
 > 先に書き、失敗することを確かめる
 
-- [ ] T034 [US1] `backend/usecase/password_auth_test.go` に `SignUp` のテストを書く（フェイクの `PasswordHasher`・`PasswordCredentialStore`・`CustomerNotifier`）：正しい入力で顧客が作られ、メールアドレスが小文字にそろう（US1-1）／ストアに渡るのは生のパスワードではなくハッシュ（FR-017）／メールアドレスの形式不正とパスワード 7 文字を同時に送ると、両方の項目の理由を持つ `ValidationError` が返り、ストアを呼ばない（US1-4・FR-002）／空のメールアドレスとパスワードは `required`／パスワードは「8 文字（rune）以上、72 バイト以下」で、8 文字ちょうど・72 バイトちょうどは通り、73 バイトは `too_long`／ストアが `domain.ErrEmailAlreadyUsed` を返すとそのまま伝わる（US1-3・FR-003・FR-004）／通知が失敗しても `SignUp` は成功する（R10）
+- [x] T034 [US1] `backend/usecase/password_auth_test.go` に `SignUp` のテストを書く（フェイクの `PasswordHasher`・`PasswordCredentialStore`・`CustomerNotifier`）：正しい入力で顧客が作られ、メールアドレスが小文字にそろう（US1-1）／ストアに渡るのは生のパスワードではなくハッシュ（FR-017）／メールアドレスの形式不正とパスワード 7 文字を同時に送ると、両方の項目の理由を持つ `ValidationError` が返り、ストアを呼ばない（US1-4・FR-002）／空のメールアドレスとパスワードは `required`／パスワードは「8 文字（rune）以上、72 バイト以下」で、8 文字ちょうど・72 バイトちょうどは通り、73 バイトは `too_long`／ストアが `domain.ErrEmailAlreadyUsed` を返すとそのまま伝わる（US1-3・FR-003・FR-004）／通知が失敗しても `SignUp` は成功する（R10）
 
 ### Implementation for User Story 1
 
-- [ ] T035 [US1] `backend/usecase/password_auth.go` に書く：`ValidatePassword(raw string) error`（「8 文字（rune）以上、72 バイト以下」。`ErrPasswordTooShort`・`ErrPasswordTooLong`）、`ValidationError`（項目名と理由コード `required`・`invalid_email`・`too_short`・`too_long` の組の一覧）、ポート `PasswordHasher`（`Hash`・`Compare`（違えば `ErrPasswordMismatch`）・`DummyCompare`）と `PasswordCredentialStore`（`CreateCustomerWithPassword`・`FindPasswordHashByEmail`）、`PasswordAuthUsecase` と `SignUp(ctx, email, password string) (domain.Customer, error)`（data-model 3.3 の手順 1〜4。T034 の後）
-- [ ] T036 [P] [US1] `backend/auth/bcrypt_hasher.go` に `PasswordHasher` の実装を書く：コスト 12 の `bcrypt.GenerateFromPassword`、`bcrypt.CompareHashAndPassword` の不一致を `usecase.ErrPasswordMismatch` に変える、`DummyCompare` は起動時に 1 度だけ作ったダミーのハッシュと照合して結果を捨てる（research R1・R7）
-- [ ] T037 [P] [US1] `backend/notification/noop.go` に `NoopCustomerNotifier`（`NotifyRegistered` は何もせず nil を返す）を書く
-- [ ] T038 [US1] `backend/repository/postgres_customer.go` に `CreateCustomerWithPassword(ctx, email domain.Email, passwordHash string) (domain.Customer, error)` を足す：`CreateCustomer` と `CreateCustomerCredential` を 1 つのトランザクションで行い、UNIQUE 違反（SQLSTATE `23505`、`pgconn.PgError` で判定）を `domain.ErrEmailAlreadyUsed` に変える。事前の存在確認（SELECT）はしない（research R6・R9）
-- [ ] T039 [US1] `backend/controller/customer_auth.go` に `POST /customers` を書く：本文 `{"email","password"}` を T024 の共通関数で読む（415・400）→ `SignUp` → `ValidationError` は 422 `validation_failed` で `details` に contracts の `message` を入れる／`domain.ErrEmailAlreadyUsed` は 409 `email_already_used` → 成功したら `CustomerSessionUsecase.Issue` を呼び、Cookie を発行して 201 と自分の情報を返す
-- [ ] T040 [US1] `backend/main.go` に `PasswordAuthUsecase`（bcrypt・`PostgresCustomer` のストア・`NoopCustomerNotifier`）を組み立て、`POST /customers` を登録する
-- [ ] T041 [US1] `apps/web/src/lib/customer-api.ts` に `signUp(email: string, password: string): Promise<Customer>` を足す
-- [ ] T042 [P] [US1] `apps/web/src/app/mypage/page.tsx` を作る（クライアントコンポーネント）：開いたときに `getMe` を呼び、401 なら `/login` へ移す。メールアドレスを表示し、氏名・フリガナ・電話番号は `null` なら「未登録」と表示する（FR-014）
-- [ ] T043 [P] [US1] `apps/web/src/app/signup/page.tsx` を作る（クライアントコンポーネント）：開いたときに `getMe` が 200 なら `/mypage` へ移す（FR-009a）。入力はメールアドレスとパスワードだけ（FR-001）。送信中はボタンを押せなくする（FR-004）。422 は `details` の内容を項目ごとに、409 は「このメールアドレスはすでに使われています」を表示する。201 なら `/mypage` へ移す
-- [ ] T044 [US1] quickstart 3 章の 1〜5 と 4 章（メールアドレスの重複・大文字の直接 INSERT・パスワードとトークンが平文でない）を手で確かめる
+- [x] T035 [US1] `backend/usecase/password_auth.go` に書く：`ValidatePassword(raw string) error`（「8 文字（rune）以上、72 バイト以下」。`ErrPasswordTooShort`・`ErrPasswordTooLong`）、`ValidationError`（項目名と理由コード `required`・`invalid_email`・`too_short`・`too_long` の組の一覧）、ポート `PasswordHasher`（`Hash`・`Compare`（違えば `ErrPasswordMismatch`）・`DummyCompare`）と `PasswordCredentialStore`（`CreateCustomerWithPassword`・`FindPasswordHashByEmail`）、`PasswordAuthUsecase` と `SignUp(ctx, email, password string) (domain.Customer, error)`（data-model 3.3 の手順 1〜4。T034 の後）
+- [x] T036 [P] [US1] `backend/auth/bcrypt_hasher.go` に `PasswordHasher` の実装を書く：コスト 12 の `bcrypt.GenerateFromPassword`、`bcrypt.CompareHashAndPassword` の不一致を `usecase.ErrPasswordMismatch` に変える、`DummyCompare` は起動時に 1 度だけ作ったダミーのハッシュと照合して結果を捨てる（research R1・R7）
+- [x] T037 [P] [US1] `backend/notification/noop.go` に `NoopCustomerNotifier`（`NotifyRegistered` は何もせず nil を返す）を書く
+- [x] T038 [US1] `backend/repository/postgres_customer.go` に `CreateCustomerWithPassword(ctx, email domain.Email, passwordHash string) (domain.Customer, error)` を足す：`CreateCustomer` と `CreateCustomerCredential` を 1 つのトランザクションで行い、UNIQUE 違反（SQLSTATE `23505`、`pgconn.PgError` で判定）を `domain.ErrEmailAlreadyUsed` に変える。事前の存在確認（SELECT）はしない（research R6・R9）
+- [x] T039 [US1] `backend/controller/customer_auth.go` に `POST /customers` を書く：本文 `{"email","password"}` を T024 の共通関数で読む（415・400）→ `SignUp` → `ValidationError` は 422 `validation_failed` で `details` に contracts の `message` を入れる／`domain.ErrEmailAlreadyUsed` は 409 `email_already_used` → 成功したら `CustomerSessionUsecase.Issue` を呼び、Cookie を発行して 201 と自分の情報を返す
+- [x] T040 [US1] `backend/main.go` に `PasswordAuthUsecase`（bcrypt・`PostgresCustomer` のストア・`NoopCustomerNotifier`）を組み立て、`POST /customers` を登録する
+- [x] T041 [US1] `apps/web/src/lib/customer-api.ts` に `signUp(email: string, password: string): Promise<Customer>` を足す
+- [x] T042 [P] [US1] `apps/web/src/app/mypage/page.tsx` を作る（クライアントコンポーネント）：開いたときに `getMe` を呼び、401 なら `/login` へ移す。メールアドレスを表示し、氏名・フリガナ・電話番号は `null` なら「未登録」と表示する（FR-014）
+- [x] T043 [P] [US1] `apps/web/src/app/signup/page.tsx` を作る（クライアントコンポーネント）：開いたときに `getMe` が 200 なら `/mypage` へ移す（FR-009a）。入力はメールアドレスとパスワードだけ（FR-001）。送信中はボタンを押せなくする（FR-004）。422 は `details` の内容を項目ごとに、409 は「このメールアドレスはすでに使われています」を表示する。201 なら `/mypage` へ移す
+- [x] T044 [US1] quickstart 3 章の 1〜5 と 4 章（メールアドレスの重複・大文字の直接 INSERT・パスワードとトークンが平文でない）を手で確かめる
 
 **Checkpoint**: アカウント作成から自分の情報の表示まで単独で動く
 
