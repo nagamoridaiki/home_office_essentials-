@@ -332,6 +332,7 @@ erDiagram
 | `purchase_orders` | `CHECK (purchase_order_status <> 'agreed' OR (final_assessed_amount IS NOT NULL AND bank_account_id IS NOT NULL))` | 合意するには最終査定額と振込先が揃っている |
 | `purchase_orders` | `CHECK (final_assessed_amount IS NULL OR final_assessed_amount >= pickup_fee)` | 集荷料を引いて送金額が負にならない |
 | `customer_addresses` | `UNIQUE (customer_id) WHERE is_default` | 既定の住所は顧客あたり 1 件だけ |
+| `customers` | `CHECK (email = lower(email))` | 小文字にそろえた値だけを保存し、`email` の UNIQUE で大文字・小文字違いの重複も弾く |
 
 ## 6. 不変条件をどこで守っているか
 
