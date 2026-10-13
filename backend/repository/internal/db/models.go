@@ -8,6 +8,38 @@ import (
 	"github.com/jackc/pgx/v5/pgtype"
 )
 
+type Customer struct {
+	ID             int64
+	Email          string
+	FamilyName     pgtype.Text
+	GivenName      pgtype.Text
+	FamilyNameKana pgtype.Text
+	GivenNameKana  pgtype.Text
+	PhoneNumber    pgtype.Text
+	CreatedAt      pgtype.Timestamptz
+	UpdatedAt      pgtype.Timestamptz
+}
+
+type CustomerCredential struct {
+	ID           int64
+	CustomerID   int64
+	PasswordHash pgtype.Text
+	AuthIssuer   pgtype.Text
+	AuthSubject  pgtype.Text
+	CreatedAt    pgtype.Timestamptz
+	UpdatedAt    pgtype.Timestamptz
+}
+
+type CustomerSession struct {
+	ID         int64
+	CustomerID int64
+	TokenHash  string
+	ExpiresAt  pgtype.Timestamptz
+	RevokedAt  pgtype.Timestamptz
+	CreatedAt  pgtype.Timestamptz
+	UpdatedAt  pgtype.Timestamptz
+}
+
 type Todo struct {
 	ID        int64
 	Title     string

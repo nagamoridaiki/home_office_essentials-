@@ -31,11 +31,11 @@ description: "顧客のアカウント作成・ログイン・ログアウト（
 
 **Purpose**: 実装の前に、依存と設定を足し、plan で見つかった設計書のずれを直す
 
-- [ ] T001 `backend` で `go get golang.org/x/crypto` を実行し、`backend/go.mod` と `backend/go.sum` に版を固定する（bcrypt のみ使う。research R1）
-- [ ] T002 [P] `compose.yaml` の `api` の `environment` に `SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-true}` を足し、`.env.example` に「`false` にすると Cookie の `Secure` を外す。ローカルで Cookie が保存されないときだけ使う」という説明付きで `SESSION_COOKIE_SECURE=true` を足す（research R3）
-- [ ] T003 [P] `docs/design/01-ubiquitous-language.md` の認証主体（`auth_subject`）の「MVP は自前で発行」を、`03` に合わせて「MVP では NULL（外部の認証サービスに切り替えたときに入れる）」に直す
-- [ ] T004 [P] `docs/design/03-logical-data-model.md` の 5 章に、`customers` の `CHECK (email = lower(email))`（小文字にそろえた値だけを保存する。research R5）を書き足す
-- [ ] T005 [P] `docs/design/04-api-list.md` の共通規約の冪等性に、「`POST /customers` は例外。2 回目の同じ要求は `409 email_already_used` を返す。アカウントが 2 つ作られない点は共通規約と同じ」を書き足す（research R6）
+- [x] T001 `backend` で `go get golang.org/x/crypto` を実行し、`backend/go.mod` と `backend/go.sum` に版を固定する（bcrypt のみ使う。research R1）
+- [x] T002 [P] `compose.yaml` の `api` の `environment` に `SESSION_COOKIE_SECURE: ${SESSION_COOKIE_SECURE:-true}` を足し、`.env.example` に「`false` にすると Cookie の `Secure` を外す。ローカルで Cookie が保存されないときだけ使う」という説明付きで `SESSION_COOKIE_SECURE=true` を足す（research R3）
+- [x] T003 [P] `docs/design/01-ubiquitous-language.md` の認証主体（`auth_subject`）の「MVP は自前で発行」を、`03` に合わせて「MVP では NULL（外部の認証サービスに切り替えたときに入れる）」に直す
+- [x] T004 [P] `docs/design/03-logical-data-model.md` の 5 章に、`customers` の `CHECK (email = lower(email))`（小文字にそろえた値だけを保存する。research R5）を書き足す
+- [x] T005 [P] `docs/design/04-api-list.md` の共通規約の冪等性に、「`POST /customers` は例外。2 回目の同じ要求は `409 email_already_used` を返す。アカウントが 2 つ作られない点は共通規約と同じ」を書き足す（research R6）
 
 ---
 
@@ -47,13 +47,13 @@ description: "顧客のアカウント作成・ログイン・ログアウト（
 
 ### DB とクエリ
 
-- [ ] T006 `docker compose run --rm migrate create -ext sql -dir /migrations -seq create_customers` で作り、`backend/db/migrations/000003_create_customers.{up,down}.sql` を書く。列は `id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY`、`email text NOT NULL`、`family_name`・`given_name`・`family_name_kana`・`given_name_kana`・`phone_number`（いずれも `text` で NULL 可）、`created_at`・`updated_at`（`timestamptz NOT NULL DEFAULT now()`）。制約は `UNIQUE (email)` と `CHECK (email = lower(email))`。`set_updated_at()` を呼ぶトリガー `customers_set_updated_at` を作る。up/down は `BEGIN;`〜`COMMIT;` で囲み、`IF NOT EXISTS`／`IF EXISTS`／`OR REPLACE` を使う（`.claude/rules/database.md`）
-- [ ] T007 `backend/db/migrations/000004_create_customer_credentials.{up,down}.sql` を同じ手順で書く。列は `id`、`customer_id bigint NOT NULL`（FK → `customers.id` `ON DELETE RESTRICT`）、`password_hash text`、`auth_issuer text`、`auth_subject text`、`created_at`・`updated_at`。制約は `UNIQUE (customer_id)`（Clarifications Q1）と `UNIQUE (auth_issuer, auth_subject)`。トリガーも作る（T006 の後）
-- [ ] T008 `backend/db/migrations/000005_create_customer_sessions.{up,down}.sql` を同じ手順で書く。列は `id`、`customer_id bigint NOT NULL`（FK → `customers.id` `ON DELETE RESTRICT`）、`token_hash text NOT NULL`、`expires_at timestamptz NOT NULL`、`revoked_at timestamptz`（NULL 可）、`created_at`・`updated_at`。制約は `UNIQUE (token_hash)`、インデックスは `customer_id`。トリガーも作る（T007 の後）
-- [ ] T009 `docker compose run --rm migrate up` で 000003〜000005 を適用し、`down 3` → `up` を流して何度でも壊れないことを確かめる
-- [ ] T010 [P] `backend/db/queries/customer.sql` に sqlc のクエリを書く：`GetCustomerByID`（:one）、`CreateCustomer`（:one。`email` だけを入れ、全列を返す）、`CreateCustomerCredential`（:exec。`customer_id`・`password_hash`）、`GetPasswordHashByEmail`（:one。`customers` と `customer_credentials` を結合し `customer_id`・`password_hash` を返す）
-- [ ] T011 [P] `backend/db/queries/customer_session.sql` にクエリを書く：`CreateCustomerSession`（:one）、`GetCustomerSessionByTokenHash`（:one）、`RevokeCustomerSession`（:execrows。`WHERE id = $1 AND revoked_at IS NULL` で `revoked_at` を埋める）
-- [ ] T012 `docker compose run --rm sqlc generate` で `backend/repository/internal/db/` を再生成する（手で編集しない。T009・T010・T011 の後）
+- [x] T006 `docker compose run --rm migrate create -ext sql -dir /migrations -seq create_customers` で作り、`backend/db/migrations/000003_create_customers.{up,down}.sql` を書く。列は `id bigint GENERATED ALWAYS AS IDENTITY PRIMARY KEY`、`email text NOT NULL`、`family_name`・`given_name`・`family_name_kana`・`given_name_kana`・`phone_number`（いずれも `text` で NULL 可）、`created_at`・`updated_at`（`timestamptz NOT NULL DEFAULT now()`）。制約は `UNIQUE (email)` と `CHECK (email = lower(email))`。`set_updated_at()` を呼ぶトリガー `customers_set_updated_at` を作る。up/down は `BEGIN;`〜`COMMIT;` で囲み、`IF NOT EXISTS`／`IF EXISTS`／`OR REPLACE` を使う（`.claude/rules/database.md`）
+- [x] T007 `backend/db/migrations/000004_create_customer_credentials.{up,down}.sql` を同じ手順で書く。列は `id`、`customer_id bigint NOT NULL`（FK → `customers.id` `ON DELETE RESTRICT`）、`password_hash text`、`auth_issuer text`、`auth_subject text`、`created_at`・`updated_at`。制約は `UNIQUE (customer_id)`（Clarifications Q1）と `UNIQUE (auth_issuer, auth_subject)`。トリガーも作る（T006 の後）
+- [x] T008 `backend/db/migrations/000005_create_customer_sessions.{up,down}.sql` を同じ手順で書く。列は `id`、`customer_id bigint NOT NULL`（FK → `customers.id` `ON DELETE RESTRICT`）、`token_hash text NOT NULL`、`expires_at timestamptz NOT NULL`、`revoked_at timestamptz`（NULL 可）、`created_at`・`updated_at`。制約は `UNIQUE (token_hash)`、インデックスは `customer_id`。トリガーも作る（T007 の後）
+- [x] T009 `docker compose run --rm migrate up` で 000003〜000005 を適用し、`down 3` → `up` を流して何度でも壊れないことを確かめる
+- [x] T010 [P] `backend/db/queries/customer.sql` に sqlc のクエリを書く：`GetCustomerByID`（:one）、`CreateCustomer`（:one。`email` だけを入れ、全列を返す）、`CreateCustomerCredential`（:exec。`customer_id`・`password_hash`）、`GetPasswordHashByEmail`（:one。`customers` と `customer_credentials` を結合し `customer_id`・`password_hash` を返す）
+- [x] T011 [P] `backend/db/queries/customer_session.sql` にクエリを書く：`CreateCustomerSession`（:one）、`GetCustomerSessionByTokenHash`（:one）、`RevokeCustomerSession`（:execrows。`WHERE id = $1 AND revoked_at IS NULL` で `revoked_at` を埋める）
+- [x] T012 `docker compose run --rm sqlc generate` で `backend/repository/internal/db/` を再生成する（手で編集しない。T009・T010・T011 の後）
 
 ### ドメイン（テストを先に書く）
 
