@@ -20,8 +20,13 @@ export default function TodoPage() {
     }
   };
 
+  // 最初の読み込み。setState は Promise の結果を受けてから呼ぶ（effect の中で同期的に呼ばない）
   useEffect(() => {
-    fetchTodos();
+    fetch("http://localhost:8080/api/todos")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data: Todo[] | null) => {
+        if (data !== null) setTodos(data || []);
+      });
   }, []);
 
   const addTodo = async (e: React.FormEvent) => {

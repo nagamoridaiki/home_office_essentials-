@@ -20,3 +20,12 @@ export function signUp(email: string, password: string): Promise<Customer> {
 export function login(email: string, password: string): Promise<Customer> {
   return apiRequest<Customer>("/sessions", { method: "POST", body: { email, password } });
 }
+
+// ログアウトする。すでにログアウト済み（401）でも、目的は果たせているので成功として扱う
+export async function logout(): Promise<void> {
+  try {
+    await apiRequest<void>("/sessions", { method: "DELETE" });
+  } catch (e: unknown) {
+    if (!isUnauthenticated(e)) throw e;
+  }
+}

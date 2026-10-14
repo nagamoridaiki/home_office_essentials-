@@ -55,3 +55,26 @@ func (u *CustomerSessionUsecase) Authenticate(ctx context.Context, raw string) (
 	}
 	return s.CustomerID, nil
 }
+
+// Revoke はそのトークンのセッションだけをログアウトさせる。他の端末のセッションには触れない。
+// 有効なセッションがなければ（ない・ログアウト済み・期限切れ）ErrUnauthenticated
+func (u *CustomerSessionUsecase) Revoke(ctx context.Context, raw string) error {
+	s, err := u.repo.FindByTokenHash(ctx, u.tokens.Hash(raw))
+	if errors.Is(err, domain.ErrSessionNotFound) {
+		return ErrUnauthenticated
+	}
+	if err != nil {
+		return err
+	}
+
+	now := u.now()
+	if err := s.Revoke(now); errors.Is(err, domain.ErrSessionNotActive) {
+		return ErrUnauthenticated
+	}
+	// 同時にログアウトされて更新が 0 行だったときも、有効なセッションがなかったのと同じに扱う
+	err = u.repo.Revoke(ctx, s.ID, now)
+	if errors.Is(err, domain.ErrSessionNotActive) {
+		return ErrUnauthenticated
+	}
+	return err
+}
