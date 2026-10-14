@@ -71,6 +71,19 @@ func (r *PostgresCustomerRepository) CreateCustomerWithPassword(ctx context.Cont
 	return toDomainCustomer(row)
 }
 
+// FindPasswordHashByEmail はログインの照合に使うハッシュを引く。なければ domain.ErrCustomerNotFound
+func (r *PostgresCustomerRepository) FindPasswordHashByEmail(ctx context.Context, email domain.Email) (int64, string, error) {
+	row, err := r.queries.GetPasswordHashByEmail(ctx, email.String())
+	// 認証情報のない顧客（password_hash が NULL）も、ログインできない点では未登録と同じに扱う
+	if errors.Is(err, pgx.ErrNoRows) || (err == nil && !row.PasswordHash.Valid) {
+		return 0, "", domain.ErrCustomerNotFound
+	}
+	if err != nil {
+		return 0, "", err
+	}
+	return row.CustomerID, row.PasswordHash.String, nil
+}
+
 // toDomainCustomer は生成コードの型をドメインの顧客に変換する
 func toDomainCustomer(row db.Customer) (domain.Customer, error) {
 	// Email のフィールドは外から入れられないので、NewEmail を通して作る

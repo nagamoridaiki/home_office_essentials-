@@ -15,6 +15,8 @@ var (
 	ErrPasswordTooLong  = errors.New("password too long")
 	// ErrPasswordMismatch はパスワードがハッシュと一致しないとき
 	ErrPasswordMismatch = errors.New("password mismatch")
+	// ErrInvalidCredentials はログインできないとき。未登録かパスワード違いかは区別しない
+	ErrInvalidCredentials = errors.New("invalid credentials")
 )
 
 const (
@@ -70,6 +72,8 @@ type PasswordHasher interface {
 type PasswordCredentialStore interface {
 	// CreateCustomerWithPassword は 1 トランザクションで作る。メールアドレスの重複は domain.ErrEmailAlreadyUsed
 	CreateCustomerWithPassword(ctx context.Context, email domain.Email, passwordHash string) (domain.Customer, error)
+	// FindPasswordHashByEmail は顧客 ID とハッシュを返す。なければ domain.ErrCustomerNotFound
+	FindPasswordHashByEmail(ctx context.Context, email domain.Email) (customerID int64, passwordHash string, err error)
 }
 
 // PasswordAuthUsecase はメールアドレスとパスワードで顧客を確かめる
@@ -104,6 +108,33 @@ func (u *PasswordAuthUsecase) SignUp(ctx context.Context, rawEmail, password str
 		log.Printf("登録の通知に失敗しました（customer_id=%d）: %v", c.ID, err)
 	}
 	return c, nil
+}
+
+// Login はメールアドレスとパスワードを確かめ、顧客 ID を返す。セッションの発行は呼び出し側（ハンドラ）が行う
+func (u *PasswordAuthUsecase) Login(ctx context.Context, rawEmail, password string) (int64, error) {
+	email, err := domain.NewEmail(rawEmail)
+	if err != nil {
+		// 形式不正でも照合の時間をかけ、応答時間で理由を悟らせない
+		u.hasher.DummyCompare(password)
+		return 0, ErrInvalidCredentials
+	}
+
+	customerID, hash, err := u.store.FindPasswordHashByEmail(ctx, email)
+	if errors.Is(err, domain.ErrCustomerNotFound) {
+		u.hasher.DummyCompare(password)
+		return 0, ErrInvalidCredentials
+	}
+	if err != nil {
+		return 0, err
+	}
+
+	if err := u.hasher.Compare(hash, password); err != nil {
+		if errors.Is(err, ErrPasswordMismatch) {
+			return 0, ErrInvalidCredentials
+		}
+		return 0, err
+	}
+	return customerID, nil
 }
 
 // validateSignUp はメールアドレスとパスワードを両方確かめ、問題をまとめて返す

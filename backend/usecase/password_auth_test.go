@@ -11,26 +11,29 @@ import (
 	"backend/usecase"
 )
 
-// fakeHasher は "hashed:" を前に付けるだけのハッシュ
-type fakeHasher struct{}
+// fakeHasher は "hashed:" を前に付けるだけのハッシュ。DummyCompare の呼ばれた回数を数える
+type fakeHasher struct {
+	dummyCalls int
+}
 
-func (fakeHasher) Hash(password string) (string, error) { return "hashed:" + password, nil }
+func (*fakeHasher) Hash(password string) (string, error) { return "hashed:" + password, nil }
 
-func (fakeHasher) Compare(hash, password string) error {
+func (*fakeHasher) Compare(hash, password string) error {
 	if hash != "hashed:"+password {
 		return usecase.ErrPasswordMismatch
 	}
 	return nil
 }
 
-func (fakeHasher) DummyCompare(string) {}
+func (h *fakeHasher) DummyCompare(string) { h.dummyCalls++ }
 
-// fakeCredentialStore は渡された値を覚えておくストア
+// fakeCredentialStore は渡された値を覚えておくストア。hashes はメールアドレスごとの登録済みハッシュ
 type fakeCredentialStore struct {
 	called    bool
 	gotEmail  domain.Email
 	gotHash   string
 	createErr error
+	hashes    map[string]string
 }
 
 func (s *fakeCredentialStore) CreateCustomerWithPassword(_ context.Context, email domain.Email, passwordHash string) (domain.Customer, error) {
@@ -41,6 +44,14 @@ func (s *fakeCredentialStore) CreateCustomerWithPassword(_ context.Context, emai
 		return domain.Customer{}, s.createErr
 	}
 	return domain.Customer{ID: 1, Email: email}, nil
+}
+
+func (s *fakeCredentialStore) FindPasswordHashByEmail(_ context.Context, email domain.Email) (int64, string, error) {
+	hash, ok := s.hashes[email.String()]
+	if !ok {
+		return 0, "", domain.ErrCustomerNotFound
+	}
+	return 1, hash, nil
 }
 
 type fakeNotifier struct {
@@ -58,7 +69,7 @@ func TestPasswordAuthUsecase_SignUp(t *testing.T) {
 
 	t.Run("正しい入力で顧客が作られ、メールアドレスが小文字にそろう", func(t *testing.T) {
 		store, notifier := &fakeCredentialStore{}, &fakeNotifier{}
-		u := usecase.NewPasswordAuthUsecase(store, fakeHasher{}, notifier)
+		u := usecase.NewPasswordAuthUsecase(store, &fakeHasher{}, notifier)
 
 		c, err := u.SignUp(ctx, " Taro@Example.com ", "correct-horse")
 
@@ -75,7 +86,7 @@ func TestPasswordAuthUsecase_SignUp(t *testing.T) {
 
 	t.Run("ストアに渡るのは生のパスワードではなくハッシュ", func(t *testing.T) {
 		store := &fakeCredentialStore{}
-		u := usecase.NewPasswordAuthUsecase(store, fakeHasher{}, &fakeNotifier{})
+		u := usecase.NewPasswordAuthUsecase(store, &fakeHasher{}, &fakeNotifier{})
 
 		if _, err := u.SignUp(ctx, "taro@example.com", "correct-horse"); err != nil {
 			t.Fatalf("SignUp() error = %v", err)
@@ -119,7 +130,7 @@ func TestPasswordAuthUsecase_SignUp(t *testing.T) {
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			store := &fakeCredentialStore{}
-			u := usecase.NewPasswordAuthUsecase(store, fakeHasher{}, &fakeNotifier{})
+			u := usecase.NewPasswordAuthUsecase(store, &fakeHasher{}, &fakeNotifier{})
 
 			_, err := u.SignUp(ctx, tt.email, tt.password)
 
@@ -138,7 +149,7 @@ func TestPasswordAuthUsecase_SignUp(t *testing.T) {
 
 	t.Run("ストアが ErrEmailAlreadyUsed を返すとそのまま伝わる", func(t *testing.T) {
 		store := &fakeCredentialStore{createErr: domain.ErrEmailAlreadyUsed}
-		u := usecase.NewPasswordAuthUsecase(store, fakeHasher{}, &fakeNotifier{})
+		u := usecase.NewPasswordAuthUsecase(store, &fakeHasher{}, &fakeNotifier{})
 
 		_, err := u.SignUp(ctx, "taro@example.com", "correct-horse")
 
@@ -148,12 +159,71 @@ func TestPasswordAuthUsecase_SignUp(t *testing.T) {
 	})
 
 	t.Run("通知が失敗しても SignUp は成功する", func(t *testing.T) {
-		u := usecase.NewPasswordAuthUsecase(&fakeCredentialStore{}, fakeHasher{}, &fakeNotifier{err: errors.New("smtp down")})
+		u := usecase.NewPasswordAuthUsecase(&fakeCredentialStore{}, &fakeHasher{}, &fakeNotifier{err: errors.New("smtp down")})
 
 		if _, err := u.SignUp(ctx, "taro@example.com", "correct-horse"); err != nil {
 			t.Errorf("SignUp() error = %v, want nil", err)
 		}
 	})
+}
+
+func TestPasswordAuthUsecase_Login(t *testing.T) {
+	ctx := context.Background()
+	newUsecase := func() (*usecase.PasswordAuthUsecase, *fakeHasher) {
+		store := &fakeCredentialStore{hashes: map[string]string{"taro@example.com": "hashed:correct-horse"}}
+		hasher := &fakeHasher{}
+		return usecase.NewPasswordAuthUsecase(store, hasher, &fakeNotifier{}), hasher
+	}
+
+	t.Run("大文字・前後の空白があっても正しいメールアドレスとパスワードで顧客 ID が返る", func(t *testing.T) {
+		u, _ := newUsecase()
+
+		id, err := u.Login(ctx, " Taro@Example.com ", "correct-horse")
+
+		if err != nil {
+			t.Fatalf("Login() error = %v", err)
+		}
+		if id != 1 {
+			t.Errorf("customerID = %d, want 1", id)
+		}
+	})
+
+	t.Run("パスワード違いは ErrInvalidCredentials", func(t *testing.T) {
+		u, _ := newUsecase()
+
+		_, err := u.Login(ctx, "taro@example.com", "wrong-horse")
+
+		if !errors.Is(err, usecase.ErrInvalidCredentials) {
+			t.Errorf("err = %v, want ErrInvalidCredentials", err)
+		}
+	})
+
+	// 未登録・形式不正でも照合の時間をかけ、応答時間で登録の有無を悟らせない
+	tests := []struct {
+		name  string
+		email string
+	}{
+		{"未登録のメールアドレスは ErrInvalidCredentials で DummyCompare が呼ばれる", "hanako@example.com"},
+		{"形式不正のメールアドレスも ErrInvalidCredentials で DummyCompare が呼ばれる", "x"},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			u, hasher := newUsecase()
+
+			_, err := u.Login(ctx, tt.email, "correct-horse")
+
+			if !errors.Is(err, usecase.ErrInvalidCredentials) {
+				t.Errorf("err = %v, want ErrInvalidCredentials", err)
+			}
+			var ve *usecase.ValidationError
+			if errors.As(err, &ve) {
+				t.Error("ログインでは ValidationError を返さない")
+			}
+			if hasher.dummyCalls != 1 {
+				t.Errorf("DummyCompare の呼び出し = %d 回, want 1", hasher.dummyCalls)
+			}
+		})
+	}
 }
 
 func TestValidatePassword(t *testing.T) {

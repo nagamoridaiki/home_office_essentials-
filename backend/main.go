@@ -42,7 +42,7 @@ func main() {
 	meController := controller.NewMeController(customerUsecase)
 	// SESSION_COOKIE_SECURE が false のときだけ Secure を外す（http の localhost で動かすため）
 	sessionCookie := controller.NewSessionCookie(os.Getenv("SESSION_COOKIE_SECURE") != "false")
-	customerAuthController := controller.NewCustomerAuthController(passwordAuthUsecase, sessionUsecase, sessionCookie)
+	customerAuthController := controller.NewCustomerAuthController(passwordAuthUsecase, sessionUsecase, customerUsecase, sessionCookie)
 
 	mux := http.NewServeMux()
 	todoController.Register(mux)

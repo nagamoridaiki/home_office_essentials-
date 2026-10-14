@@ -21,15 +21,17 @@ var fieldErrorMessages = map[usecase.FieldError]string{
 type CustomerAuthController struct {
 	passwordAuth *usecase.PasswordAuthUsecase
 	sessions     *usecase.CustomerSessionUsecase
+	customers    *usecase.CustomerUsecase
 	cookie       SessionCookie
 }
 
-func NewCustomerAuthController(passwordAuth *usecase.PasswordAuthUsecase, sessions *usecase.CustomerSessionUsecase, cookie SessionCookie) *CustomerAuthController {
-	return &CustomerAuthController{passwordAuth: passwordAuth, sessions: sessions, cookie: cookie}
+func NewCustomerAuthController(passwordAuth *usecase.PasswordAuthUsecase, sessions *usecase.CustomerSessionUsecase, customers *usecase.CustomerUsecase, cookie SessionCookie) *CustomerAuthController {
+	return &CustomerAuthController{passwordAuth: passwordAuth, sessions: sessions, customers: customers, cookie: cookie}
 }
 
 func (c *CustomerAuthController) Register(mux *http.ServeMux) {
 	mux.HandleFunc("POST /customers", c.signUp)
+	mux.HandleFunc("POST /sessions", c.login)
 }
 
 type credentialsRequest struct {
@@ -65,6 +67,39 @@ func (c *CustomerAuthController) signUp(w http.ResponseWriter, r *http.Request) 
 	}
 	c.cookie.Set(w, raw)
 	writeJSON(w, http.StatusCreated, toCustomerResponse(customer))
+}
+
+// login はメールアドレスとパスワードを確かめ、新しいセッションを発行する。
+// 他の端末のセッションには触れない
+func (c *CustomerAuthController) login(w http.ResponseWriter, r *http.Request) {
+	var req credentialsRequest
+	if !decodeJSON(w, r, &req) {
+		return
+	}
+
+	customerID, err := c.passwordAuth.Login(r.Context(), req.Email, req.Password)
+	switch {
+	case errors.Is(err, usecase.ErrInvalidCredentials):
+		// 未登録かパスワード違いかを悟らせないため、理由を区別しない（422 も返さない）
+		writeError(w, http.StatusUnauthorized, codeInvalidCredentials, "メールアドレスまたはパスワードが正しくありません", nil)
+		return
+	case err != nil:
+		writeInternalError(w)
+		return
+	}
+
+	customer, err := c.customers.GetMe(r.Context(), customerID)
+	if err != nil {
+		writeInternalError(w)
+		return
+	}
+	raw, _, err := c.sessions.Issue(r.Context(), customerID)
+	if err != nil {
+		writeInternalError(w)
+		return
+	}
+	c.cookie.Set(w, raw)
+	writeJSON(w, http.StatusOK, toCustomerResponse(customer))
 }
 
 func writeValidationError(w http.ResponseWriter, ve *usecase.ValidationError) {
