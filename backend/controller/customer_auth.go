@@ -32,6 +32,7 @@ func NewCustomerAuthController(passwordAuth *usecase.PasswordAuthUsecase, sessio
 func (c *CustomerAuthController) Register(mux *http.ServeMux) {
 	mux.HandleFunc("POST /customers", c.signUp)
 	mux.HandleFunc("POST /sessions", c.login)
+	mux.HandleFunc("DELETE /sessions", c.logout)
 }
 
 type credentialsRequest struct {
@@ -100,6 +101,29 @@ func (c *CustomerAuthController) login(w http.ResponseWriter, r *http.Request) {
 	}
 	c.cookie.Set(w, raw)
 	writeJSON(w, http.StatusOK, toCustomerResponse(customer))
+}
+
+// logout はこの端末のセッションだけを終わらせる。
+// 認証方式を差し替える境目（RequireCustomer）は通さず、Cookie を直接読む
+func (c *CustomerAuthController) logout(w http.ResponseWriter, r *http.Request) {
+	// 成功しても失敗しても、ブラウザに残った Cookie は消しておく
+	c.cookie.Clear(w)
+
+	cookie, err := r.Cookie(sessionCookieName)
+	if err != nil || cookie.Value == "" {
+		writeUnauthenticated(w)
+		return
+	}
+	err = c.sessions.Revoke(r.Context(), cookie.Value)
+	switch {
+	case errors.Is(err, usecase.ErrUnauthenticated):
+		writeUnauthenticated(w)
+		return
+	case err != nil:
+		writeInternalError(w)
+		return
+	}
+	w.WriteHeader(http.StatusNoContent)
 }
 
 func writeValidationError(w http.ResponseWriter, ve *usecase.ValidationError) {

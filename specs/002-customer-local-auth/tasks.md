@@ -156,18 +156,18 @@ description: "顧客のアカウント作成・ログイン・ログアウト（
 
 ### Tests for User Story 3 ⚠️
 
-- [ ] T053 [US3] `backend/usecase/customer_session_test.go` に `Revoke` のテストを足す：有効なトークンで `Revoke` すると、その後 `Authenticate` が `ErrUnauthenticated`（US3-1・US3-2・FR-011）／同じ顧客の別のセッションは `Authenticate` が成功したまま（US3-3・FR-012）／**禁止された遷移**：ログアウト済みのトークンでもう一度 `Revoke` すると `ErrUnauthenticated`、期限切れのトークンの `Revoke` も `ErrUnauthenticated`／存在しないトークンは `ErrUnauthenticated`／リポジトリの `Revoke` には現在時刻が渡り、行は消さない（FR-013）
+- [x] T053 [US3] `backend/usecase/customer_session_test.go` に `Revoke` のテストを足す：有効なトークンで `Revoke` すると、その後 `Authenticate` が `ErrUnauthenticated`（US3-1・US3-2・FR-011）／同じ顧客の別のセッションは `Authenticate` が成功したまま（US3-3・FR-012）／**禁止された遷移**：ログアウト済みのトークンでもう一度 `Revoke` すると `ErrUnauthenticated`、期限切れのトークンの `Revoke` も `ErrUnauthenticated`／存在しないトークンは `ErrUnauthenticated`／リポジトリの `Revoke` には現在時刻が渡り、行は消さない（FR-013）
 
 ### Implementation for User Story 3
 
-- [ ] T054 [US3] `backend/usecase/customer_session.go` に `Revoke(ctx, raw string) error` を足す：ハッシュで引き、`domain.CustomerSession.Revoke(now)` が `ErrSessionNotActive` なら、またはセッションがなければ `ErrUnauthenticated`。成功したらリポジトリの `Revoke` を呼ぶ（T053 の後）
+- [x] T054 [US3] `backend/usecase/customer_session.go` に `Revoke(ctx, raw string) error` を足す：ハッシュで引き、`domain.CustomerSession.Revoke(now)` が `ErrSessionNotActive` なら、またはセッションがなければ `ErrUnauthenticated`。成功したらリポジトリの `Revoke` を呼ぶ（T053 の後）
 - [x] T055 [P] [US3] `backend/repository/postgres_customer_session.go` に `Revoke(ctx, id int64, at time.Time) error` を足す。`revoked_at IS NULL` の行だけ更新し、更新が 0 行なら `domain.ErrSessionNotActive` を返す
-- [ ] T056 [US3] `backend/controller/customer_auth.go` に `DELETE /sessions` を足す：Cookie を読み `Revoke` を呼ぶ。成功なら Cookie を消して 204、Cookie がない・無効なら Cookie を消して 401 `unauthenticated`。ログアウトは FR-020 の差し替えの境目に含めないので、`RequireCustomer` を通さず Cookie を直接読んでよい（research R8）
-- [ ] T057 [US3] `backend/main.go` に `DELETE /sessions` を登録する
-- [ ] T058 [US3] `apps/web/src/lib/customer-api.ts` に `logout(): Promise<void>` を足す。204 でも 401 でも成功として扱う（spec の Edge Cases）
-- [ ] T059 [US3] `apps/web/src/components/site-header.tsx` を作る（クライアントコンポーネント）：`getMe` が 200 ならログアウトボタン、401 なら「ログイン」「アカウント作成」へのリンクを出す。ログアウトを押したら `logout` の後に `/login` へ移す
-- [ ] T060 [US3] `apps/web/src/app/layout.tsx` に `SiteHeader` を足す
-- [ ] T061 [US3] quickstart 3 章の 6・7・12、4 章の「ログアウトの記録が残る」、6 章の 4・7 を手で確かめる
+- [x] T056 [US3] `backend/controller/customer_auth.go` に `DELETE /sessions` を足す：Cookie を読み `Revoke` を呼ぶ。成功なら Cookie を消して 204、Cookie がない・無効なら Cookie を消して 401 `unauthenticated`。ログアウトは FR-020 の差し替えの境目に含めないので、`RequireCustomer` を通さず Cookie を直接読んでよい（research R8）
+- [x] T057 [US3] `backend/main.go` に `DELETE /sessions` を登録する
+- [x] T058 [US3] `apps/web/src/lib/customer-api.ts` に `logout(): Promise<void>` を足す。204 でも 401 でも成功として扱う（spec の Edge Cases）
+- [x] T059 [US3] `apps/web/src/components/site-header.tsx` を作る（クライアントコンポーネント）：`getMe` が 200 ならログアウトボタン、401 なら「ログイン」「アカウント作成」へのリンクを出す。ログアウトを押したら `logout` の後に `/login` へ移す
+- [x] T060 [US3] `apps/web/src/app/layout.tsx` に `SiteHeader` を足す
+- [x] T061 [US3] quickstart 3 章の 6・7・12、4 章の「ログアウトの記録が残る」、6 章の 4・7 を手で確かめる
 
 **Checkpoint**: 3 つのストーリーがすべて単独で動く
 
@@ -175,12 +175,12 @@ description: "顧客のアカウント作成・ログイン・ログアウト（
 
 ## Phase 6: Polish & Cross-Cutting Concerns
 
-- [ ] T062 `docker compose run --rm --no-deps api go test ./...` がすべて通ることを確かめる（constitution VI。通るまで完了にしない）
-- [ ] T063 [P] `backend` で `gofmt -l .` が何も出さず、`go vet ./...` が通ることを確かめる
-- [ ] T064 [P] `pnpm --filter web lint` と `pnpm --filter web build` が通ることを確かめる
-- [ ] T065 `docker compose run --rm sqlc generate` を流し直し、`git diff backend/repository/internal/db` に差分が出ないことを確かめる
-- [ ] T066 quickstart 5 章（期限切れ）を含め、quickstart.md の手順を最初から通しで確かめる。`.env` や `jar.txt` をコミットしない
-- [ ] T067 実装と設計書（`docs/design/01`・`03`・`04`、`data-model.md`、`contracts/customer-auth-api.md`）の名前と形が食い違っていないかを見直す。ずれていたら同じ変更で直す
+- [x] T062 `docker compose run --rm --no-deps api go test ./...` がすべて通ることを確かめる（constitution VI。通るまで完了にしない）
+- [x] T063 [P] `backend` で `gofmt -l .` が何も出さず、`go vet ./...` が通ることを確かめる
+- [x] T064 [P] `pnpm --filter web lint` と `pnpm --filter web build` が通ることを確かめる
+- [x] T065 `docker compose run --rm sqlc generate` を流し直し、`git diff backend/repository/internal/db` に差分が出ないことを確かめる
+- [x] T066 quickstart 5 章（期限切れ）を含め、quickstart.md の手順を最初から通しで確かめる。`.env` や `jar.txt` をコミットしない
+- [x] T067 実装と設計書（`docs/design/01`・`03`・`04`、`data-model.md`、`contracts/customer-auth-api.md`）の名前と形が食い違っていないかを見直す。ずれていたら同じ変更で直す
 
 ---
 

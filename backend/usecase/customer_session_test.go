@@ -144,3 +144,79 @@ func TestCustomerSessionUsecase_Authenticate(t *testing.T) {
 		})
 	}
 }
+
+func TestCustomerSessionUsecase_Revoke(t *testing.T) {
+	ctx := context.Background()
+
+	t.Run("ログアウトした後はそのトークンで認証できない", func(t *testing.T) {
+		u, _, _ := newSessionUsecase()
+		raw, _, _ := u.Issue(ctx, 7)
+
+		if err := u.Revoke(ctx, raw); err != nil {
+			t.Fatalf("Revoke() error = %v", err)
+		}
+		if _, err := u.Authenticate(ctx, raw); !errors.Is(err, usecase.ErrUnauthenticated) {
+			t.Errorf("Authenticate() err = %v, want ErrUnauthenticated", err)
+		}
+	})
+
+	t.Run("同じ顧客の別の端末のセッションは使えるまま", func(t *testing.T) {
+		repo := newFakeSessionRepo()
+		pc := usecase.NewCustomerSessionUsecase(repo, fakeTokenGenerator{raw: "pc-token"}, func() time.Time { return now })
+		phone := usecase.NewCustomerSessionUsecase(repo, fakeTokenGenerator{raw: "phone-token"}, func() time.Time { return now })
+		pcRaw, _, _ := pc.Issue(ctx, 7)
+		phoneRaw, _, _ := phone.Issue(ctx, 7)
+
+		if err := pc.Revoke(ctx, pcRaw); err != nil {
+			t.Fatalf("Revoke() error = %v", err)
+		}
+		if id, err := phone.Authenticate(ctx, phoneRaw); err != nil || id != 7 {
+			t.Errorf("別の端末の Authenticate() = %d, %v, want 7, nil", id, err)
+		}
+	})
+
+	t.Run("行は消さず、ログアウトした時刻が記録される", func(t *testing.T) {
+		u, repo, _ := newSessionUsecase()
+		raw, _, _ := u.Issue(ctx, 7)
+
+		if err := u.Revoke(ctx, raw); err != nil {
+			t.Fatalf("Revoke() error = %v", err)
+		}
+		s, ok := repo.sessions["hash:raw-token"]
+		if !ok {
+			t.Fatal("セッションの行が消えた")
+		}
+		if s.RevokedAt == nil || !s.RevokedAt.Equal(now) {
+			t.Errorf("RevokedAt = %v, want %v", s.RevokedAt, now)
+		}
+	})
+
+	// 禁止された遷移：有効でないセッションはログアウトできない
+	tests := []struct {
+		name  string
+		setup func(u *usecase.CustomerSessionUsecase, c *clock) string
+	}{
+		{"ログアウト済みのトークンをもう一度ログアウト", func(u *usecase.CustomerSessionUsecase, _ *clock) string {
+			raw, _, _ := u.Issue(ctx, 7)
+			_ = u.Revoke(ctx, raw)
+			return raw
+		}},
+		{"期限切れのトークン", func(u *usecase.CustomerSessionUsecase, c *clock) string {
+			raw, _, _ := u.Issue(ctx, 7)
+			c.t = now.Add(30 * 24 * time.Hour)
+			return raw
+		}},
+		{"存在しないトークン", func(*usecase.CustomerSessionUsecase, *clock) string {
+			return "unknown"
+		}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name+"は ErrUnauthenticated", func(t *testing.T) {
+			u, _, c := newSessionUsecase()
+			raw := tt.setup(u, c)
+			if err := u.Revoke(ctx, raw); !errors.Is(err, usecase.ErrUnauthenticated) {
+				t.Errorf("err = %v, want ErrUnauthenticated", err)
+			}
+		})
+	}
+}
