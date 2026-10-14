@@ -15,3 +15,8 @@ export function getMe(): Promise<Customer> {
 export function signUp(email: string, password: string): Promise<Customer> {
   return apiRequest<Customer>("/customers", { method: "POST", body: { email, password } });
 }
+
+// ログインする。成功すると Cookie が発行され、自分の情報が返る
+export function login(email: string, password: string): Promise<Customer> {
+  return apiRequest<Customer>("/sessions", { method: "POST", body: { email, password } });
+}

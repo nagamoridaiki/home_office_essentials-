@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -92,6 +93,13 @@ export default function SignUpPage() {
           {submitting ? "作成中..." : "アカウントを作成"}
         </button>
       </form>
+
+      <p className="mt-6 text-sm text-center text-gray-600">
+        アカウントをお持ちの方は
+        <Link href="/login" className="text-blue-600 hover:underline">
+          ログイン
+        </Link>
+      </p>
     </main>
   );
 }

@@ -132,17 +132,17 @@ description: "顧客のアカウント作成・ログイン・ログアウト（
 
 ### Tests for User Story 2 ⚠️
 
-- [ ] T045 [US2] `backend/usecase/password_auth_test.go` に `Login` のテストを足す：正しいメールアドレス（大文字・前後の空白があっても）とパスワードで顧客 ID が返る（US2-1）／パスワード違いは `ErrInvalidCredentials`（US2-2）／未登録のメールアドレスは `ErrInvalidCredentials` で、フェイクの `DummyCompare` が 1 回呼ばれる（US2-3・FR-007・R7）／形式不正のメールアドレスも `ErrInvalidCredentials` で `DummyCompare` が呼ばれ、`ValidationError` は返さない
+- [x] T045 [US2] `backend/usecase/password_auth_test.go` に `Login` のテストを足す：正しいメールアドレス（大文字・前後の空白があっても）とパスワードで顧客 ID が返る（US2-1）／パスワード違いは `ErrInvalidCredentials`（US2-2）／未登録のメールアドレスは `ErrInvalidCredentials` で、フェイクの `DummyCompare` が 1 回呼ばれる（US2-3・FR-007・R7）／形式不正のメールアドレスも `ErrInvalidCredentials` で `DummyCompare` が呼ばれ、`ValidationError` は返さない
 
 ### Implementation for User Story 2
 
-- [ ] T046 [US2] `backend/usecase/password_auth.go` に `ErrInvalidCredentials` と `Login(ctx, email, password string) (customerID int64, error)` を足す（data-model 3.3 の `Login`。T045 の後）
-- [ ] T047 [P] [US2] `backend/repository/postgres_customer.go` に `FindPasswordHashByEmail(ctx, email domain.Email) (customerID int64, passwordHash string, err error)` を足す。なければ `domain.ErrCustomerNotFound`
-- [ ] T048 [US2] `backend/controller/customer_auth.go` に `POST /sessions` を足す：本文を読み（415・400）→ `Login` → 失敗は 401 `invalid_credentials`（`message` は「メールアドレスまたはパスワードが正しくありません」。422 は返さない）→ 成功したら `Issue` で Cookie を発行し、`GetMe` の結果を 200 で返す。他の端末のセッションには触れない（FR-009）
-- [ ] T049 [US2] `backend/main.go` に `POST /sessions` を登録する
-- [ ] T050 [US2] `apps/web/src/lib/customer-api.ts` に `login(email: string, password: string): Promise<Customer>` を足す
-- [ ] T051 [US2] `apps/web/src/app/login/page.tsx` を作る（クライアントコンポーネント）：開いたときに `getMe` が 200 なら `/mypage` へ移す（FR-009a）。送信中はボタンを押せなくする。401 は API の `message` をそのまま表示する。成功したら `/mypage` へ移す。`/signup` へのリンクを置き、`/signup` からも `/login` へのリンクを置く（`apps/web/src/app/signup/page.tsx`）
-- [ ] T052 [US2] quickstart 3 章の 8〜11 と 6 章の 3・5・6 を手で確かめる
+- [x] T046 [US2] `backend/usecase/password_auth.go` に `ErrInvalidCredentials` と `Login(ctx, email, password string) (customerID int64, error)` を足す（data-model 3.3 の `Login`。T045 の後）
+- [x] T047 [P] [US2] `backend/repository/postgres_customer.go` に `FindPasswordHashByEmail(ctx, email domain.Email) (customerID int64, passwordHash string, err error)` を足す。なければ `domain.ErrCustomerNotFound`
+- [x] T048 [US2] `backend/controller/customer_auth.go` に `POST /sessions` を足す：本文を読み（415・400）→ `Login` → 失敗は 401 `invalid_credentials`（`message` は「メールアドレスまたはパスワードが正しくありません」。422 は返さない）→ 成功したら `Issue` で Cookie を発行し、`GetMe` の結果を 200 で返す。他の端末のセッションには触れない（FR-009）
+- [x] T049 [US2] `backend/main.go` に `POST /sessions` を登録する
+- [x] T050 [US2] `apps/web/src/lib/customer-api.ts` に `login(email: string, password: string): Promise<Customer>` を足す
+- [x] T051 [US2] `apps/web/src/app/login/page.tsx` を作る（クライアントコンポーネント）：開いたときに `getMe` が 200 なら `/mypage` へ移す（FR-009a）。送信中はボタンを押せなくする。401 は API の `message` をそのまま表示する。成功したら `/mypage` へ移す。`/signup` へのリンクを置き、`/signup` からも `/login` へのリンクを置く（`apps/web/src/app/signup/page.tsx`）
+- [x] T052 [US2] quickstart 3 章の 8〜11 と 6 章の 3・5・6 を手で確かめる
 
 **Checkpoint**: US1 と US2 がそれぞれ単独で動く
 
